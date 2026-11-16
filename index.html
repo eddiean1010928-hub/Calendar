@@ -345,7 +345,6 @@
           if (cur.getDay() === weekday) keys.push(formatDateKey(cur));
         }
       } else if (mode === 'year_weekday') {
-        // 今年整年（1月到12月）每個相同的星期幾
         for (let month = 0; month < 12; month++) {
           const daysInTargetMonth = new Date(y, month + 1, 0).getDate();
           for (let day = 1; day <= daysInTargetMonth; day++) {
@@ -494,7 +493,7 @@
         if (token) headers['Authorization'] = `Bearer ${token}`;
 
         const res = await fetch(url, { headers });
-        if (!res.ok) throw new Error('讀取失敗，請確認 GITHUB_OWNER、倉庫名稱與 events.json 是否存在');
+        if (!res.ok) throw new Error('讀取失敗');
         
         const data = await res.json();
         fileSha = data.sha;
@@ -545,7 +544,7 @@
         renderCalendar();
         return true;
       } catch (err) {
-        alert('存檔失敗：' + err.message);
+        alert('存檔失敗： ' + err.message);
         return false;
       } finally {
         modalCard.classList.remove('syncing');
@@ -553,7 +552,7 @@
     }
 
     function sortEventsByTime(list) {
-      return list.sort((a, b) => {
+      return (list || []).sort((a, b) => {
         const ta = a.startTime || a.time || '99:99';
         const tb = b.startTime || b.time || '99:99';
         return ta.localeCompare(tb);
@@ -598,7 +597,7 @@
         numDiv.textContent = d;
         cell.appendChild(numDiv);
 
-        const dayEvents = sortEventsByTime([...(eventsData[dateKey] || [])]);
+        const dayEvents = sortEventsByTime(eventsData[dateKey] || []);
         dayEvents.forEach(ev => {
           const pill = document.createElement('div');
           const catInfo = CATEGORIES[ev.category] || CATEGORIES.class;
@@ -628,7 +627,6 @@
       document.getElementById('eventCategory').value = 'class';
       document.getElementById('repeatMode').value = 'single';
 
-      // 動態帶入當天的星期幾與日期，方便一眼辨識
       const repeatSelect = document.getElementById('repeatMode');
       repeatSelect.options[3].textContent = `本月每個星期${wName}`;
       repeatSelect.options[4].textContent = `今年每個星期${wName} (整年每週)`;
@@ -642,7 +640,7 @@
       const listEl = document.getElementById('modalEventList');
       listEl.innerHTML = '';
       const isEditable = currentUser && currentUser !== 'guest';
-      const dayEvents = sortEventsByTime([...(eventsData[selectedDateKey] || [])]);
+      const dayEvents = sortEventsByTime(eventsData[selectedDateKey] || []);
 
       if (dayEvents.length === 0) {
         listEl.innerHTML = '<div style="text-align:center; color:#94a3b8; padding:20px 0;">這天還沒有安排任何事情</div>';
@@ -735,42 +733,47 @@
     }
 
     document.getElementById('saveEventBtn').addEventListener('click', async () => {
-      const startTime = document.getElementById('eventStartTime').value;
-      const endTime = document.getElementById('eventEndTime').value;
-      const title = document.getElementById('eventTitle').value.trim();
-      const category = document.getElementById('eventCategory').value;
-      const repeatMode = document.getElementById('repeatMode').value;
+      try {
+        const startTime = document.getElementById('eventStartTime').value;
+        const endTime = document.getElementById('eventEndTime').value;
+        const title = document.getElementById('eventTitle').value.trim();
+        const category = document.getElementById('eventCategory').value;
+        const repeatMode = document.getElementById('repeatMode').value;
 
-      if (!title) {
-        alert('請輸入活動名稱！');
-        return;
-      }
+        if (!title) {
+          alert('請輸入活動名稱！');
+          return;
+        }
 
-      if (startTime && endTime && endTime < startTime) {
-        alert('結束時間不能早於開始時間喔！');
-        return;
-      }
+        if (startTime && endTime && endTime < startTime) {
+          alert('結束時間不能早於開始時間喔！');
+          return;
+        }
 
-      const targetKeys = getTargetDateKeys(selectedDateKey, repeatMode);
-      const baseTimestamp = Date.now();
+        const targetKeys = getTargetDateKeys(selectedDateKey, repeatMode);
+        const baseTimestamp = Date.now();
 
-      targetKeys.forEach((dateKey, idx) => {
-        if (!eventsData[dateKey]) eventsData[dateKey] = [];
-        eventsData[dateKey].push({
-          id: `${baseTimestamp}-${idx}`,
-          startTime: startTime,
-          endTime: endTime,
-          title: title,
-          category: category
+        targetKeys.forEach((dateKey, idx) => {
+          if (!eventsData[dateKey]) eventsData[dateKey] = [];
+          eventsData[dateKey].push({
+            id: `${baseTimestamp}-${idx}`,
+            startTime: startTime,
+            endTime: endTime,
+            title: title,
+            category: category
+          });
         });
-      });
 
-      const ok = await saveEventsToGitHub(`Add ${targetKeys.length} event(s)`);
-      if (ok) {
-        document.getElementById('eventTitle').value = '';
-        document.getElementById('repeatMode').value = 'single';
-        renderModalList();
-        if (targetKeys.length > 1) alert(`已一鍵新增至 ${targetKeys.length} 個日期！`);
+        const ok = await saveEventsToGitHub(`Add ${targetKeys.length} event(s)`);
+        if (ok) {
+          document.getElementById('eventTitle').value = '';
+          document.getElementById('repeatMode').value = 'single';
+          renderModalList();
+          if (targetKeys.length > 1) alert(`已成功一鍵新增至 ${targetKeys.length} 個日期！`);
+        }
+      } catch (err) {
+        alert('存檔失敗：Type error');
+        console.error(err);
       }
     });
 
