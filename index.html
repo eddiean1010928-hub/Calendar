@@ -297,6 +297,7 @@
     }
 
     function formatEventTimeDisplay(ev) {
+      if (!ev) return '';
       const start = ev.startTime || ev.time || '';
       const end = ev.endTime || '';
       if (start && end) return `${start}~${end}`;
@@ -306,6 +307,7 @@
     }
 
     function getEventDurationMinutes(ev) {
+      if (!ev) return 60;
       const start = ev.startTime || ev.time || '';
       const end = ev.endTime || '';
       if (start && end) {
@@ -375,9 +377,9 @@
 
         dayEvents.forEach(ev => {
           const mins = getEventDurationMinutes(ev);
-          if (ev.category === 'class') {
+          if (ev && ev.category === 'class') {
             totalClassMinutes += mins;
-          } else if (ev.category === 'self') {
+          } else if (ev && ev.category === 'self') {
             totalSelfMinutes += mins;
           }
         });
@@ -552,9 +554,10 @@
     }
 
     function sortEventsByTime(list) {
-      return (list || []).sort((a, b) => {
-        const ta = a.startTime || a.time || '99:99';
-        const tb = b.startTime || b.time || '99:99';
+      if (!Array.isArray(list)) return [];
+      return list.sort((a, b) => {
+        const ta = (a && (a.startTime || a.time)) || '99:99';
+        const tb = (b && (b.startTime || b.time)) || '99:99';
         return ta.localeCompare(tb);
       });
     }
@@ -599,12 +602,14 @@
 
         const dayEvents = sortEventsByTime(eventsData[dateKey] || []);
         dayEvents.forEach(ev => {
-          const pill = document.createElement('div');
-          const catInfo = CATEGORIES[ev.category] || CATEGORIES.class;
-          pill.className = `event-pill ${catInfo.class}`;
-          const timeStr = formatEventTimeDisplay(ev);
-          pill.textContent = `${timeStr ? timeStr + ' ' : ''}${ev.title}`;
-          cell.appendChild(pill);
+          if (ev) {
+            const pill = document.createElement('div');
+            const catInfo = CATEGORIES[ev.category] || CATEGORIES.class;
+            pill.className = `event-pill ${catInfo.class}`;
+            const timeStr = formatEventTimeDisplay(ev);
+            pill.textContent = `${timeStr ? timeStr + ' ' : ''}${ev.title || ''}`;
+            cell.appendChild(pill);
+          }
         });
 
         cell.addEventListener('click', () => openDayModal(dateKey, d));
@@ -648,6 +653,7 @@
       }
 
       dayEvents.forEach(ev => {
+        if (!ev) return;
         const item = document.createElement('div');
         item.className = 'event-item';
         
@@ -659,7 +665,7 @@
           <div style="font-size:12px; color:var(--primary); font-weight:600;">
             ${timeStr} <span style="background:#e2e8f0; color:#475569; padding:1px 5px; border-radius:4px; font-size:10px; margin-left:4px;">${catInfo.name}</span>
           </div>
-          <div class="event-name">${ev.title}</div>
+          <div class="event-name">${ev.title || ''}</div>
         `;
         item.appendChild(info);
 
@@ -671,7 +677,7 @@
           delBtn.className = 'del-btn';
           delBtn.textContent = '刪除';
           delBtn.onclick = async () => {
-            eventsData[selectedDateKey] = eventsData[selectedDateKey].filter(x => x.id !== ev.id);
+            eventsData[selectedDateKey] = eventsData[selectedDateKey].filter(x => x && x.id !== ev.id);
             if (eventsData[selectedDateKey].length === 0) delete eventsData[selectedDateKey];
             const ok = await saveEventsToGitHub(`Delete single event`);
             if (ok) renderModalList();
@@ -694,7 +700,7 @@
                   const k = formatDateKey(new Date(y, m, d));
                   if (eventsData[k]) {
                     const before = eventsData[k].length;
-                    eventsData[k] = eventsData[k].filter(x => !(x.title === ev.title && x.category === ev.category));
+                    eventsData[k] = eventsData[k].filter(x => x && !(x.title === ev.title && x.category === ev.category));
                     count += (before - eventsData[k].length);
                     if (eventsData[k].length === 0) delete eventsData[k];
                   }
@@ -712,7 +718,7 @@
             targetKeys.forEach(k => {
               if (eventsData[k]) {
                 const before = eventsData[k].length;
-                eventsData[k] = eventsData[k].filter(x => !(x.title === ev.title && x.category === ev.category));
+                eventsData[k] = eventsData[k].filter(x => x && !(x.title === ev.title && x.category === ev.category));
                 count += (before - eventsData[k].length);
                 if (eventsData[k].length === 0) delete eventsData[k];
               }
@@ -772,7 +778,7 @@
           if (targetKeys.length > 1) alert(`已成功一鍵新增至 ${targetKeys.length} 個日期！`);
         }
       } catch (err) {
-        alert('存檔失敗：Type error');
+        alert('存檔失敗：Type error 處理完成');
         console.error(err);
       }
     });
