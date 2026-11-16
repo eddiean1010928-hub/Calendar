@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>我的十年時間規劃表</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --text: #1e293b;
+      --border: #e2e8f0;
+      --today: #eff6ff;
+      --event-bg: #dbeafe;
+      --event-text: #1e40af;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: var(--bg); color: var(--text); padding: 12px; max-width: 1000px; margin: 0 auto; }
+    
+    /* 頂部控制列 */
+    .header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 15px; background: var(--card); padding: 12px 16px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    .nav-group { display: flex; align-items: center; gap: 8px; }
+    select, button { padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); font-size: 15px; color: var(--text); cursor: pointer; }
+    button:active { transform: scale(0.97); }
+    .btn-primary { background: var(--primary); color: white; border: none; font-weight: 600; }
+    .status-badge { font-size: 13px; padding: 4px 10px; border-radius: 20px; background: #f1f5f9; color: #64748b; }
+    .status-badge.unlocked { background: #dcfce7; color: #166534; }
+
+    /* 月曆網格 */
+    .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; background: var(--card); padding: 10px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    .weekday { text-align: center; font-weight: 600; font-size: 13px; color: #64748b; padding: 8px 0; }
+    .day-cell { min-height: 85px; border: 1px solid var(--border); border-radius: 8px; padding: 6px; cursor: pointer; display: flex; flex-direction: column; gap: 4px; transition: background 0.15s; overflow: hidden; }
+    .day-cell:hover { background: #f1f5f9; }
+    .day-cell.empty { background: transparent; border: none; cursor: default; }
+    .day-cell.today { background: var(--today); border-color: var(--primary); }
+    .day-num { font-size: 14px; font-weight: 600; }
+    .today .day-num { color: var(--primary); }
+    
+    /* 格子內的活動標籤 */
+    .event-pill { background: var(--event-bg); color: var(--event-text); font-size: 11px; padding: 2px 5px; border-radius: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500; }
+
+    /* 放大編輯彈出視窗 (Modal) */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(2px); z-index: 100; justify-content: center; align-items: center; padding: 16px; }
+    .modal-overlay.active { display: flex; }
+    .modal-card { background: var(--card); width: 100%; max-width: 440px; border-radius: 16px; padding: 20px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); max-height: 85vh; display: flex; flex-direction: column; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+    .modal-title { font-size: 18px; font-weight: 700; }
+    .close-btn { border: none; background: #f1f5f9; width: 32px; height: 32px; border-radius: 50%; font-size: 18px; display: flex; align-items: center; justify-content: center; }
+
+    /* 活動列表與新增表單 */
+    .event-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; min-height: 60px; }
+    .event-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; }
+    .event-info { display: flex; flex-direction: column; gap: 2px; }
+    .event-time { font-size: 12px; color: var(--primary); font-weight: 600; }
+    .event-name { font-size: 15px; font-weight: 500; }
+    .del-btn { background: #fee2e2; color: #dc2626; border: none; padding: 6px 10px; font-size: 12px; border-radius: 6px; }
+
+    .add-form { display: flex; flex-direction: column; gap: 10px; padding-top: 12px; border-top: 1px solid var(--border); }
+    .input-row { display: flex; gap: 8px; }
+    input[type="time"], input[type="text"] { padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 15px; }
+    input[type="time"] { width: 125px; }
+    input[type="text"] { flex: 1; }
+    
+    /* 載入遮罩 */
+    .syncing { opacity: 0.6; pointer-events: none; }
+
+    @media (max-width: 600px) {
+      .day-cell { min-height: 70px; padding: 4px; }
+      .event-pill { font-size: 10px; padding: 2px 3px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="nav-group">
+      <button id="prevMonth">&lt;</button>
+      <select id="yearSelect"></select>
+      <select id="monthSelect"></select>
+      <button id="nextMonth">&gt;</button>
+      <button id="todayBtn">今天</button>
+    </div>
+    <div class="nav-group">
+      <span id="authStatus" class="status-badge">唯讀模式</span>
+      <button id="authBtn">輸入鑰匙</button>
+    </div>
+  </div>
+
+  <div class="calendar-grid" id="calendarGrid"></div>
+
+  <!-- 單日放大編輯視窗 -->
+  <div class="modal-overlay" id="dayModal">
+    <div class="modal-card" id="modalCard">
+      <div class="modal-header">
+        <div class="modal-title" id="modalDateTitle">2026年11月16日</div>
+        <button class="close-btn" id="closeModal">&times;</button>
+      </div>
+      
+      <div class="event-list" id="modalEventList"></div>
+
+      <div class="add-form" id="addForm">
+        <div class="input-row">
+          <input type="time" id="eventTime">
+          <input type="text" id="eventTitle" placeholder="輸入要做的事情...">
+        </div>
+        <button class="btn-primary" id="saveEventBtn">新增並存檔到 GitHub</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ==========================================
+    // 【請修改這裡】填入你的 GitHub 帳號與儲存庫名稱
+    // ==========================================
+    const GITHUB_OWNER = '你的GitHub帳號'; 
+    const GITHUB_REPO = 'my-calendar';
+    const DATA_FILE = 'events.json';
+    // ==========================================
+
+    let currentYear = new Date().getFullYear();
+    let currentMonth = new Date().getMonth(); // 0-11
+    let eventsData = {}; // 格式: { "2026-11-16": [ { id, time, title } ] }
+    let fileSha = '';    // GitHub API 更新檔案必備的驗證碼
+    let selectedDateKey = '';
+
+    const yearSelect = document.getElementById('yearSelect');
+    const monthSelect = document.getElementById('monthSelect');
+    const calendarGrid = document.getElementById('calendarGrid');
+    const dayModal = document.getElementById('dayModal');
+    const modalCard = document.getElementById('modalCard');
+
+    // 初始化年份 (提供 2025 到 2040 共 16 年)
+    for (let y = 2025; y <= 2040; y++) {
+      const opt = document.createElement('option');
+      opt.value = y;
+      opt.textContent = `${y} 年`;
+      yearSelect.appendChild(opt);
+    }
+
+    // 初始化月份
+    for (let m = 0; m < 12; m++) {
+      const opt = document.createElement('option');
+      opt.value = m;
+      opt.textContent = `${m + 1} 月`;
+      monthSelect.appendChild(opt);
+    }
+
+    // 檢查權限狀態
+    function updateAuthUI() {
+      const token = localStorage.getItem('gh_calendar_token');
+      const statusEl = document.getElementById('authStatus');
+      const authBtn = document.getElementById('authBtn');
+      const addForm = document.getElementById('addForm');
+
+      if (token) {
+        statusEl.textContent = '已解鎖 (可編輯)';
+        statusEl.classList.add('unlocked');
+        authBtn.textContent = '重設鑰匙';
+        addForm.style.display = 'flex';
+      } else {
+        statusEl.textContent = '唯讀模式';
+        statusEl.classList.remove('unlocked');
+        authBtn.textContent = '輸入鑰匙';
+        addForm.style.display = 'none';
+      }
+    }
+
+    document.getElementById('authBtn').addEventListener('click', () => {
+      const current = localStorage.getItem('gh_calendar_token') || '';
+      const input = prompt('請貼上你的 GitHub Personal Access Token（留空則登出鎖定）：', current);
+      if (input !== null) {
+        if (input.trim() === '') {
+          localStorage.removeItem('gh_calendar_token');
+        } else {
+          localStorage.setItem('gh_calendar_token', input.trim());
+        }
+        updateAuthUI();
+        if (selectedDateKey) renderModalList();
+      }
+    });
+
+    // 從 GitHub 讀取 events.json
+    async function loadEventsFromGitHub() {
+      try {
+        const url = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${DATA_FILE}?t=${Date.now()}`;
+        const token = localStorage.getItem('gh_calendar_token');
+        const headers = { 'Accept': 'application/vnd.github.v3+json' };
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+
+        const res = await fetch(url, { headers });
+        if (!res.ok) throw new Error('讀取失敗，請確認帳號、倉庫名稱與 events.json 是否存在');
+        
+        const data = await res.json();
+        fileSha = data.sha;
+        // 正確解碼包含中文字的 Base64
+        const decoded = decodeURIComponent(escape(atob(data.content)));
+        eventsData = JSON.parse(decoded || '{}');
+        renderCalendar();
+      } catch (err) {
+        console.error(err);
+        alert('讀取資料時發生錯誤：' + err.message);
+      }
+    }
+
+    // 將最新資料寫回 GitHub
+    async function saveEventsToGitHub() {
+      const token = localStorage.getItem('gh_calendar_token');
+      if (!token) {
+        alert('請先在右上角輸入你的 GitHub 鑰匙才能存檔！');
+        return false;
+      }
+
+      modalCard.classList.add('syncing');
+      try {
+        const url = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${DATA_FILE}`;
+        const jsonStr = JSON.stringify(eventsData, null, 2);
+        // 正確編碼包含中文字的 Base64
+        const encoded = btoa(unescape(encodeURIComponent(jsonStr)));
+
+        const res = await fetch(url, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/vnd.github.v3+json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            message: `Update schedule for ${selectedDateKey}`,
+            content: encoded,
+            sha: fileSha
+          })
+        });
+
+        if (!res.ok) {
+          const errData = await res.json();
+          throw new Error(errData.message || '存檔失敗');
+        }
+
+        const result = await res.json();
+        fileSha = result.content.sha; // 更新最新的 SHA 供下次存檔使用
+        renderCalendar();
+        return true;
+      } catch (err) {
+        alert('存檔失敗：' + err.message + '\n請確認你的 Token 權限是否包含 Contents: Read and write。');
+        return false;
+      } finally {
+        modalCard.classList.remove('syncing');
+      }
+    }
+
+    // 渲染月曆畫面
+    function renderCalendar() {
+      yearSelect.value = currentYear;
+      monthSelect.value = currentMonth;
+      calendarGrid.innerHTML = '';
+
+      const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+      weekdays.forEach(w => {
+        const div = document.createElement('div');
+        div.className = 'weekday';
+        div.textContent = w;
+        calendarGrid.appendChild(div);
+      });
+
+      const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+      const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+      const today = new Date();
+
+      for (let i = 0; i < firstDay; i++) {
+        const empty = document.createElement('div');
+        empty.className = 'day-cell empty';
+        calendarGrid.appendChild(empty);
+      }
+
+      for (let d = 1; d <= daysInMonth; d++) {
+        const cell = document.createElement('div');
+        cell.className = 'day-cell';
+        
+        if (currentYear === today.getFullYear() && currentMonth === today.getMonth() && d === today.getDate()) {
+          cell.classList.add('today');
+        }
+
+        const dateKey = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        
+        const numDiv = document.createElement('div');
+        numDiv.className = 'day-num';
+        numDiv.textContent = d;
+        cell.appendChild(numDiv);
+
+        // 顯示該日活動（依時間排序）
+        const dayEvents = (eventsData[dateKey] || []).sort((a, b) => (a.time || '99:99').localeCompare(b.time || '99:99'));
+        dayEvents.forEach(ev => {
+          const pill = document.createElement('div');
+          pill.className = 'event-pill';
+          pill.textContent = `${ev.time ? ev.time + ' ' : ''}${ev.title}`;
+          cell.appendChild(pill);
+        });
+
+        cell.addEventListener('click', () => openDayModal(dateKey, d));
+        calendarGrid.appendChild(cell);
+      }
+    }
+
+    // 開啟單日放大視窗
+    function openDayModal(dateKey, dayNum) {
+      selectedDateKey = dateKey;
+      document.getElementById('modalDateTitle').textContent = `${currentYear} 年 ${currentMonth + 1} 月 ${dayNum} 日`;
+      document.getElementById('eventTime').value = '';
+      document.getElementById('eventTitle').value = '';
+      renderModalList();
+      dayModal.classList.add('active');
+    }
+
+    function renderModalList() {
+      const listEl = document.getElementById('modalEventList');
+      listEl.innerHTML = '';
+      const hasToken = !!localStorage.getItem('gh_calendar_token');
+      const dayEvents = (eventsData[selectedDateKey] || []).sort((a, b) => (a.time || '99:99').localeCompare(b.time || '99:99'));
+
+      if (dayEvents.length === 0) {
+        listEl.innerHTML = '<div style="text-align:center; color:#94a3b8; padding:20px 0;">這天還沒有安排任何事情</div>';
+        return;
+      }
+
+      dayEvents.forEach(ev => {
+        const item = document.createElement('div');
+        item.className = 'event-item';
+        
+        const info = document.createElement('div');
+        info.className = 'event-info';
+        info.innerHTML = `
+          <span class="event-time">${ev.time || '全天'}</span>
+          <span class="event-name">${ev.title}</span>
+        `;
+        item.appendChild(info);
+
+        if (hasToken) {
+          const delBtn = document.createElement('button');
+          delBtn.className = 'del-btn';
+          delBtn.textContent = '刪除';
+          delBtn.onclick = async () => {
+            eventsData[selectedDateKey] = eventsData[selectedDateKey].filter(x => x.id !== ev.id);
+            if (eventsData[selectedDateKey].length === 0) delete eventsData[selectedDateKey];
+            const ok = await saveEventsToGitHub();
+            if (ok) renderModalList();
+          };
+          item.appendChild(delBtn);
+        }
+
+        listEl.appendChild(item);
+      });
+    }
+
+    // 新增活動
+    document.getElementById('saveEventBtn').addEventListener('click', async () => {
+      const time = document.getElementById('eventTime').value;
+      const title = document.getElementById('eventTitle').value.trim();
+      if (!title) {
+        alert('請輸入活動名稱！');
+        return;
+      }
+
+      if (!eventsData[selectedDateKey]) eventsData[selectedDateKey] = [];
+      eventsData[selectedDateKey].push({
+        id: Date.now().toString(),
+        time: time,
+        title: title
+      });
+
+      const ok = await saveEventsToGitHub();
+      if (ok) {
+        document.getElementById('eventTitle').value = '';
+        renderModalList();
+      }
+    });
+
+    // 關閉視窗與導航事件
+    document.getElementById('closeModal').addEventListener('click', () => dayModal.classList.remove('active'));
+    dayModal.addEventListener('click', (e) => { if (e.target === dayModal) dayModal.classList.remove('active'); });
+    
+    yearSelect.addEventListener('change', (e) => { currentYear = parseInt(e.target.value); renderCalendar(); });
+    monthSelect.addEventListener('change', (e) => { currentMonth = parseInt(e.target.value); renderCalendar(); });
+    
+    document.getElementById('prevMonth').addEventListener('click', () => {
+      currentMonth--;
+      if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+      renderCalendar();
+    });
+
+    document.getElementById('nextMonth').addEventListener('click', () => {
+      currentMonth++;
+      if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+      renderCalendar();
+    });
+
+    document.getElementById('todayBtn').addEventListener('click', () => {
+      const now = new Date();
+      currentYear = now.getFullYear();
+      currentMonth = now.getMonth();
+      renderCalendar();
+    });
+
+    // 啟動初始化
+    updateAuthUI();
+    renderCalendar();
+    loadEventsFromGitHub();
+  </script>
+</body>
+</html>
