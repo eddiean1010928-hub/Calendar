@@ -7,89 +7,165 @@
   <style>
     :root {
       --primary: #2563eb;
+      --primary-hover: #1d4ed8;
       --bg: #f8fafc;
       --card: #ffffff;
       --text: #1e293b;
+      --muted: #64748b;
       --border: #e2e8f0;
       --today: #eff6ff;
       --event-bg: #dbeafe;
       --event-text: #1e40af;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background: var(--bg); color: var(--text); padding: 12px; max-width: 1000px; margin: 0 auto; }
-    
-    /* 頂部控制列 */
+    body { background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    /* ================= 登入首頁樣式 ================= */
+    .login-screen {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 16px;
+    }
+    .login-card {
+      background: var(--card);
+      width: 100%;
+      max-width: 380px;
+      padding: 28px 24px;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .login-title { font-size: 22px; font-weight: 700; text-align: center; color: var(--text); }
+    .login-subtitle { font-size: 13px; color: var(--muted); text-align: center; margin-top: -8px; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group label { font-size: 13px; font-weight: 600; color: var(--text); }
+    .form-group input {
+      padding: 11px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 15px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-group input:focus { border-color: var(--primary); }
+    .error-msg { color: #dc2626; font-size: 13px; text-align: center; display: none; }
+    .divider { display: flex; align-items: center; text-align: center; color: var(--muted); font-size: 12px; margin: 4px 0; }
+    .divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid var(--border); }
+    .divider:not(:empty)::before { margin-right: .75em; }
+    .divider:not(:empty)::after { margin-left: .75em; }
+
+    /* ================= 主日曆系統樣式 ================= */
+    .app-container { display: none; padding: 12px; max-width: 1000px; margin: 0 auto; }
     .header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 15px; background: var(--card); padding: 12px 16px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-    .nav-group { display: flex; align-items: center; gap: 8px; }
-    select, button { padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); font-size: 15px; color: var(--text); cursor: pointer; }
+    .nav-group { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    select, button { padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); font-size: 14px; color: var(--text); cursor: pointer; font-weight: 500; }
     button:active { transform: scale(0.97); }
-    .btn-primary { background: var(--primary); color: white; border: none; font-weight: 600; }
-    .status-badge { font-size: 13px; padding: 4px 10px; border-radius: 20px; background: #f1f5f9; color: #64748b; }
-    .status-badge.unlocked { background: #dcfce7; color: #166534; }
+    .btn-primary { background: var(--primary); color: white; border: none; font-weight: 600; padding: 11px; font-size: 15px; }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-guest { background: #f1f5f9; color: var(--text); border: 1px solid var(--border); padding: 11px; font-size: 15px; font-weight: 600; }
+    .btn-guest:hover { background: #e2e8f0; }
+
+    .user-badge { font-size: 13px; padding: 5px 10px; border-radius: 20px; background: #f1f5f9; color: var(--muted); font-weight: 600; }
+    .user-badge.admin { background: #dcfce7; color: #166534; }
+    .btn-key { background: #fef3c7; color: #92400e; border-color: #fde68a; font-size: 13px; }
+    .btn-key.ready { background: #eff6ff; color: #1e40af; border-color: #bfdbfe; }
 
     /* 月曆網格 */
     .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; background: var(--card); padding: 10px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-    .weekday { text-align: center; font-weight: 600; font-size: 13px; color: #64748b; padding: 8px 0; }
+    .weekday { text-align: center; font-weight: 600; font-size: 13px; color: var(--muted); padding: 8px 0; }
     .day-cell { min-height: 85px; border: 1px solid var(--border); border-radius: 8px; padding: 6px; cursor: pointer; display: flex; flex-direction: column; gap: 4px; transition: background 0.15s; overflow: hidden; }
     .day-cell:hover { background: #f1f5f9; }
     .day-cell.empty { background: transparent; border: none; cursor: default; }
     .day-cell.today { background: var(--today); border-color: var(--primary); }
     .day-num { font-size: 14px; font-weight: 600; }
     .today .day-num { color: var(--primary); }
-    
-    /* 格子內的活動標籤 */
     .event-pill { background: var(--event-bg); color: var(--event-text); font-size: 11px; padding: 2px 5px; border-radius: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500; }
 
-    /* 放大編輯彈出視窗 (Modal) */
+    /* 單日放大編輯視窗 (Modal) */
     .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(2px); z-index: 100; justify-content: center; align-items: center; padding: 16px; }
     .modal-overlay.active { display: flex; }
-    .modal-card { background: var(--card); width: 100%; max-width: 440px; border-radius: 16px; padding: 20px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); max-height: 85vh; display: flex; flex-direction: column; }
-    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+    .modal-card { background: var(--card); width: 100%; max-width: 460px; border-radius: 16px; padding: 20px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); max-height: 88vh; display: flex; flex-direction: column; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
     .modal-title { font-size: 18px; font-weight: 700; }
     .close-btn { border: none; background: #f1f5f9; width: 32px; height: 32px; border-radius: 50%; font-size: 18px; display: flex; align-items: center; justify-content: center; }
 
-    /* 活動列表與新增表單 */
-    .event-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; min-height: 60px; }
-    .event-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; }
-    .event-info { display: flex; flex-direction: column; gap: 2px; }
+    .event-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; min-height: 60px; }
+    .event-item { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 10px; background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; }
+    .event-info { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
     .event-time { font-size: 12px; color: var(--primary); font-weight: 600; }
-    .event-name { font-size: 15px; font-weight: 500; }
-    .del-btn { background: #fee2e2; color: #dc2626; border: none; padding: 6px 10px; font-size: 12px; border-radius: 6px; }
+    .event-name { font-size: 15px; font-weight: 500; word-break: break-word; }
+    .item-actions { display: flex; gap: 5px; flex-shrink: 0; }
+    .del-btn { background: #fee2e2; color: #dc2626; border: none; padding: 6px 9px; font-size: 12px; border-radius: 6px; font-weight: 600; }
+    .bulk-del-btn { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; padding: 6px 9px; font-size: 12px; border-radius: 6px; font-weight: 600; }
 
     .add-form { display: flex; flex-direction: column; gap: 10px; padding-top: 12px; border-top: 1px solid var(--border); }
     .input-row { display: flex; gap: 8px; }
-    input[type="time"], input[type="text"] { padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 15px; }
-    input[type="time"] { width: 125px; }
+    input[type="time"], input[type="text"], .repeat-select { padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; background: #fff; }
+    input[type="time"] { width: 120px; }
     input[type="text"] { flex: 1; }
-    
-    /* 載入遮罩 */
+    .repeat-row { display: flex; align-items: center; gap: 8px; }
+    .repeat-row label { font-size: 13px; font-weight: 600; color: var(--muted); white-space: nowrap; }
+    .repeat-select { flex: 1; color: var(--text); font-weight: 500; }
     .syncing { opacity: 0.6; pointer-events: none; }
 
     @media (max-width: 600px) {
       .day-cell { min-height: 70px; padding: 4px; }
       .event-pill { font-size: 10px; padding: 2px 3px; }
+      .modal-card { padding: 16px; }
     }
   </style>
 </head>
 <body>
 
-  <div class="header">
-    <div class="nav-group">
-      <button id="prevMonth">&lt;</button>
-      <select id="yearSelect"></select>
-      <select id="monthSelect"></select>
-      <button id="nextMonth">&gt;</button>
-      <button id="todayBtn">今天</button>
-    </div>
-    <div class="nav-group">
-      <span id="authStatus" class="status-badge">唯讀模式</span>
-      <button id="authBtn">輸入鑰匙</button>
+  <!-- ================= 1. 登入與身分選擇畫面 ================= -->
+  <div class="login-screen" id="loginScreen">
+    <div class="login-card">
+      <div class="login-title">十年時間規劃表</div>
+      <div class="login-subtitle">請選擇登入方式以繼續</div>
+
+      <div class="form-group">
+        <label for="loginUser">帳號</label>
+        <input type="text" id="loginUser" placeholder="請輸入帳號" autocomplete="username">
+      </div>
+      <div class="form-group">
+        <label for="loginPass">密碼</label>
+        <input type="password" id="loginPass" placeholder="請輸入密碼" autocomplete="current-password">
+      </div>
+      <div class="error-msg" id="loginError">帳號或密碼錯誤，請重新輸入</div>
+
+      <button class="btn-primary" id="loginSubmitBtn">帳號登入（可編輯）</button>
+
+      <div class="divider">或</div>
+
+      <button class="btn-guest" id="guestBtn">訪客進入（僅供查看）</button>
     </div>
   </div>
 
-  <div class="calendar-grid" id="calendarGrid"></div>
+  <!-- ================= 2. 主日曆系統畫面 ================= -->
+  <div class="app-container" id="appContainer">
+    <div class="header">
+      <div class="nav-group">
+        <button id="prevMonth">&lt;</button>
+        <select id="yearSelect"></select>
+        <select id="monthSelect"></select>
+        <button id="nextMonth">&gt;</button>
+        <button id="todayBtn">今天</button>
+      </div>
+      <div class="nav-group">
+        <span id="roleBadge" class="user-badge">訪客模式</span>
+        <button id="bindKeyBtn" class="btn-key" style="display:none;">綁定存檔鑰匙</button>
+        <button id="logoutBtn">登出 / 切換身分</button>
+      </div>
+    </div>
 
-  <!-- 單日放大編輯視窗 -->
+    <div class="calendar-grid" id="calendarGrid"></div>
+  </div>
+
+  <!-- ================= 3. 單日放大編輯視窗 ================= -->
   <div class="modal-overlay" id="dayModal">
     <div class="modal-card" id="modalCard">
       <div class="modal-header">
@@ -104,41 +180,62 @@
           <input type="time" id="eventTime">
           <input type="text" id="eventTitle" placeholder="輸入要做的事情...">
         </div>
-        <button class="btn-primary" id="saveEventBtn">新增並存檔到 GitHub</button>
+        <div class="repeat-row">
+          <label for="repeatMode">批量套用：</label>
+          <select id="repeatMode" class="repeat-select">
+            <option value="single">僅限這一天</option>
+            <option value="week_all">一鍵新增：本週每一天（週日～週六）</option>
+            <option value="month_all">一鍵新增：本月每一天</option>
+            <option value="month_weekday">一鍵新增：本月每個同星期幾</option>
+            <option value="year_monthday">一鍵新增：今年每個月的這一天</option>
+          </select>
+        </div>
+        <button class="btn-primary" id="saveEventBtn">確認新增並存檔</button>
       </div>
     </div>
   </div>
 
   <script>
-    // ==========================================
-    // 【請修改這裡】填入你的 GitHub 帳號與儲存庫名稱
-    // ==========================================
-    const GITHUB_OWNER = '你的GitHub帳號'; 
+    // =========================================================================
+    // 【設定區 1】帳號密碼清單（你可以直接在這裡複製格式、新增多組帳密）
+    // =========================================================================
+    const USERS = [
+      { username: 'eddiean1010928', password: 'eddie0928', label: 'Eddie (管理員)' },
+      // 若要新增其他組帳密，請把下面這行的「//」刪掉並修改內容：
+      // { username: 'friend01', password: 'password123', label: '協作者' },
+    ];
+
+    // =========================================================================
+    // 【設定區 2】GitHub 儲存庫資訊（請確認與你的 GitHub 帳號及倉庫名稱一致）
+    // =========================================================================
+    const GITHUB_OWNER = 'eddiean1010928'; 
     const GITHUB_REPO = 'my-calendar';
     const DATA_FILE = 'events.json';
-    // ==========================================
+    // =========================================================================
 
+    let currentUser = null;
     let currentYear = new Date().getFullYear();
-    let currentMonth = new Date().getMonth(); // 0-11
-    let eventsData = {}; // 格式: { "2026-11-16": [ { id, time, title } ] }
-    let fileSha = '';    // GitHub API 更新檔案必備的驗證碼
+    let currentMonth = new Date().getMonth();
+    let eventsData = {};
+    let fileSha = '';
     let selectedDateKey = '';
 
+    const loginScreen = document.getElementById('loginScreen');
+    const appContainer = document.getElementById('appContainer');
+    const loginError = document.getElementById('loginError');
     const yearSelect = document.getElementById('yearSelect');
     const monthSelect = document.getElementById('monthSelect');
     const calendarGrid = document.getElementById('calendarGrid');
     const dayModal = document.getElementById('dayModal');
     const modalCard = document.getElementById('modalCard');
 
-    // 初始化年份 (提供 2025 到 2040 共 16 年)
+    // 初始化年份 (2025 ~ 2040 共 16 年) 與月份
     for (let y = 2025; y <= 2040; y++) {
       const opt = document.createElement('option');
       opt.value = y;
       opt.textContent = `${y} 年`;
       yearSelect.appendChild(opt);
     }
-
-    // 初始化月份
     for (let m = 0; m < 12; m++) {
       const opt = document.createElement('option');
       opt.value = m;
@@ -146,41 +243,159 @@
       monthSelect.appendChild(opt);
     }
 
-    // 檢查權限狀態
-    function updateAuthUI() {
-      const token = localStorage.getItem('gh_calendar_token');
-      const statusEl = document.getElementById('authStatus');
-      const authBtn = document.getElementById('authBtn');
-      const addForm = document.getElementById('addForm');
+    // ================= 日期格式化與範圍計算小幫手 =================
+    function formatDateKey(dateObj) {
+      const y = dateObj.getFullYear();
+      const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+      const d = String(dateObj.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
 
-      if (token) {
-        statusEl.textContent = '已解鎖 (可編輯)';
-        statusEl.classList.add('unlocked');
-        authBtn.textContent = '重設鑰匙';
-        addForm.style.display = 'flex';
-      } else {
-        statusEl.textContent = '唯讀模式';
-        statusEl.classList.remove('unlocked');
-        authBtn.textContent = '輸入鑰匙';
-        addForm.style.display = 'none';
+    function parseDateKey(dateKey) {
+      const [y, m, d] = dateKey.split('-').map(Number);
+      return new Date(y, m - 1, d);
+    }
+
+    // 根據選擇的模式，計算出所有目標日期的 dateKey 陣列
+    function getTargetDateKeys(baseDateKey, mode) {
+      const baseDate = parseDateKey(baseDateKey);
+      const y = baseDate.getFullYear();
+      const m = baseDate.getMonth();
+      const d = baseDate.getDate();
+      const weekday = baseDate.getDay();
+      const keys = [];
+
+      if (mode === 'single') {
+        keys.push(baseDateKey);
+      } else if (mode === 'week_all') {
+        // 本週週日到週六
+        const sunday = new Date(y, m, d - weekday);
+        for (let i = 0; i < 7; i++) {
+          const cur = new Date(sunday.getFullYear(), sunday.getMonth(), sunday.getDate() + i);
+          keys.push(formatDateKey(cur));
+        }
+      } else if (mode === 'month_all') {
+        // 本月每一天
+        const daysInMonth = new Date(y, m + 1, 0).getDate();
+        for (let day = 1; day <= daysInMonth; day++) {
+          keys.push(formatDateKey(new Date(y, m, day)));
+        }
+      } else if (mode === 'month_weekday') {
+        // 本月每個相同星期幾
+        const daysInMonth = new Date(y, m + 1, 0).getDate();
+        for (let day = 1; day <= daysInMonth; day++) {
+          const cur = new Date(y, m, day);
+          if (cur.getDay() === weekday) {
+            keys.push(formatDateKey(cur));
+          }
+        }
+      } else if (mode === 'year_monthday') {
+        // 今年每個月的同一天（若該月沒有 31 號則自動略過）
+        for (let month = 0; month < 12; month++) {
+          const daysInTargetMonth = new Date(y, month + 1, 0).getDate();
+          if (d <= daysInTargetMonth) {
+            keys.push(formatDateKey(new Date(y, month, d)));
+          }
+        }
+      }
+      return keys;
+    }
+
+    // ================= 登入與權限控制邏輯 =================
+    function checkSavedSession() {
+      const savedSession = localStorage.getItem('calendar_session');
+      if (savedSession === 'guest') {
+        enterApp('guest');
+      } else if (savedSession) {
+        const found = USERS.find(u => u.username === savedSession);
+        if (found) enterApp(found);
       }
     }
 
-    document.getElementById('authBtn').addEventListener('click', () => {
+    document.getElementById('loginSubmitBtn').addEventListener('click', handleLogin);
+    document.getElementById('loginPass').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') handleLogin();
+    });
+
+    function handleLogin() {
+      const uInput = document.getElementById('loginUser').value.trim();
+      const pInput = document.getElementById('loginPass').value;
+      const matchedUser = USERS.find(u => u.username === uInput && u.password === pInput);
+      if (matchedUser) {
+        loginError.style.display = 'none';
+        localStorage.setItem('calendar_session', matchedUser.username);
+        enterApp(matchedUser);
+      } else {
+        loginError.style.display = 'block';
+      }
+    }
+
+    document.getElementById('guestBtn').addEventListener('click', () => {
+      loginError.style.display = 'none';
+      localStorage.setItem('calendar_session', 'guest');
+      enterApp('guest');
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      localStorage.removeItem('calendar_session');
+      currentUser = null;
+      document.getElementById('loginPass').value = '';
+      appContainer.style.display = 'none';
+      loginScreen.style.display = 'flex';
+    });
+
+    function enterApp(userOrGuest) {
+      currentUser = userOrGuest;
+      loginScreen.style.display = 'none';
+      appContainer.style.display = 'block';
+
+      const roleBadge = document.getElementById('roleBadge');
+      const bindKeyBtn = document.getElementById('bindKeyBtn');
+      const addForm = document.getElementById('addForm');
+
+      if (currentUser === 'guest') {
+        roleBadge.textContent = '訪客模式 (唯讀)';
+        roleBadge.classList.remove('admin');
+        bindKeyBtn.style.display = 'none';
+        addForm.style.display = 'none';
+      } else {
+        roleBadge.textContent = `已登入：${currentUser.label || currentUser.username}`;
+        roleBadge.classList.add('admin');
+        bindKeyBtn.style.display = 'inline-block';
+        addForm.style.display = 'flex';
+        updateKeyButtonStatus();
+      }
+
+      renderCalendar();
+      loadEventsFromGitHub();
+    }
+
+    function updateKeyButtonStatus() {
+      const btn = document.getElementById('bindKeyBtn');
+      const hasToken = !!localStorage.getItem('gh_calendar_token');
+      if (hasToken) {
+        btn.textContent = '存檔鑰匙已就緒';
+        btn.classList.add('ready');
+      } else {
+        btn.textContent = '⚠️ 綁定存檔鑰匙';
+        btn.classList.remove('ready');
+      }
+    }
+
+    document.getElementById('bindKeyBtn').addEventListener('click', () => {
       const current = localStorage.getItem('gh_calendar_token') || '';
-      const input = prompt('請貼上你的 GitHub Personal Access Token（留空則登出鎖定）：', current);
+      const input = prompt('請貼上你的 GitHub Token (github_pat_...) 以啟用雲端存檔：', current);
       if (input !== null) {
         if (input.trim() === '') {
           localStorage.removeItem('gh_calendar_token');
         } else {
           localStorage.setItem('gh_calendar_token', input.trim());
         }
-        updateAuthUI();
-        if (selectedDateKey) renderModalList();
+        updateKeyButtonStatus();
       }
     });
 
-    // 從 GitHub 讀取 events.json
+    // ================= GitHub API 讀寫邏輯 =================
     async function loadEventsFromGitHub() {
       try {
         const url = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${DATA_FILE}?t=${Date.now()}`;
@@ -189,25 +404,24 @@
         if (token) headers['Authorization'] = `Bearer ${token}`;
 
         const res = await fetch(url, { headers });
-        if (!res.ok) throw new Error('讀取失敗，請確認帳號、倉庫名稱與 events.json 是否存在');
+        if (!res.ok) throw new Error('讀取失敗，請確認 GITHUB_OWNER、倉庫名稱與 events.json 是否已建立');
         
         const data = await res.json();
         fileSha = data.sha;
-        // 正確解碼包含中文字的 Base64
         const decoded = decodeURIComponent(escape(atob(data.content)));
         eventsData = JSON.parse(decoded || '{}');
         renderCalendar();
       } catch (err) {
         console.error(err);
-        alert('讀取資料時發生錯誤：' + err.message);
       }
     }
 
-    // 將最新資料寫回 GitHub
-    async function saveEventsToGitHub() {
+    async function saveEventsToGitHub(commitMsg = `Update schedule`) {
+      if (currentUser === 'guest') return false;
+
       const token = localStorage.getItem('gh_calendar_token');
       if (!token) {
-        alert('請先在右上角輸入你的 GitHub 鑰匙才能存檔！');
+        alert('這台裝置尚未綁定存檔鑰匙！請先點擊右上角的「⚠️ 綁定存檔鑰匙」貼上你的 GitHub Token。');
         return false;
       }
 
@@ -215,7 +429,6 @@
       try {
         const url = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${DATA_FILE}`;
         const jsonStr = JSON.stringify(eventsData, null, 2);
-        // 正確編碼包含中文字的 Base64
         const encoded = btoa(unescape(encodeURIComponent(jsonStr)));
 
         const res = await fetch(url, {
@@ -226,7 +439,7 @@
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            message: `Update schedule for ${selectedDateKey}`,
+            message: `${commitMsg} by ${currentUser.username}`,
             content: encoded,
             sha: fileSha
           })
@@ -238,18 +451,18 @@
         }
 
         const result = await res.json();
-        fileSha = result.content.sha; // 更新最新的 SHA 供下次存檔使用
+        fileSha = result.content.sha;
         renderCalendar();
         return true;
       } catch (err) {
-        alert('存檔失敗：' + err.message + '\n請確認你的 Token 權限是否包含 Contents: Read and write。');
+        alert('存檔失敗：' + err.message);
         return false;
       } finally {
         modalCard.classList.remove('syncing');
       }
     }
 
-    // 渲染月曆畫面
+    // ================= 日曆渲染與單日放大編輯 =================
     function renderCalendar() {
       yearSelect.value = currentYear;
       monthSelect.value = currentMonth;
@@ -288,7 +501,6 @@
         numDiv.textContent = d;
         cell.appendChild(numDiv);
 
-        // 顯示該日活動（依時間排序）
         const dayEvents = (eventsData[dateKey] || []).sort((a, b) => (a.time || '99:99').localeCompare(b.time || '99:99'));
         dayEvents.forEach(ev => {
           const pill = document.createElement('div');
@@ -302,12 +514,22 @@
       }
     }
 
-    // 開啟單日放大視窗
     function openDayModal(dateKey, dayNum) {
       selectedDateKey = dateKey;
-      document.getElementById('modalDateTitle').textContent = `${currentYear} 年 ${currentMonth + 1} 月 ${dayNum} 日`;
+      const baseDate = parseDateKey(dateKey);
+      const weekdayNames = ['日', '一', '二', '三', '四', '五', '六'];
+      const wName = weekdayNames[baseDate.getDay()];
+
+      document.getElementById('modalDateTitle').textContent = `${currentYear} 年 ${currentMonth + 1} 月 ${dayNum} 日 (週${wName})`;
       document.getElementById('eventTime').value = '';
       document.getElementById('eventTitle').value = '';
+      document.getElementById('repeatMode').value = 'single';
+
+      // 動態更新下拉選單的星期幾文字，讓操作更直覺
+      const repeatSelect = document.getElementById('repeatMode');
+      repeatSelect.options[3].textContent = `一鍵新增：本月每個星期${wName}`;
+      repeatSelect.options[4].textContent = `一鍵新增：今年每月 ${dayNum} 號`;
+
       renderModalList();
       dayModal.classList.add('active');
     }
@@ -315,7 +537,7 @@
     function renderModalList() {
       const listEl = document.getElementById('modalEventList');
       listEl.innerHTML = '';
-      const hasToken = !!localStorage.getItem('gh_calendar_token');
+      const isEditable = currentUser && currentUser !== 'guest';
       const dayEvents = (eventsData[selectedDateKey] || []).sort((a, b) => (a.time || '99:99').localeCompare(b.time || '99:99'));
 
       if (dayEvents.length === 0) {
@@ -335,50 +557,135 @@
         `;
         item.appendChild(info);
 
-        if (hasToken) {
+        if (isEditable) {
+          const actionsDiv = document.createElement('div');
+          actionsDiv.className = 'item-actions';
+
+          // 1. 單日刪除按鈕
           const delBtn = document.createElement('button');
           delBtn.className = 'del-btn';
           delBtn.textContent = '刪除';
           delBtn.onclick = async () => {
             eventsData[selectedDateKey] = eventsData[selectedDateKey].filter(x => x.id !== ev.id);
             if (eventsData[selectedDateKey].length === 0) delete eventsData[selectedDateKey];
-            const ok = await saveEventsToGitHub();
+            const ok = await saveEventsToGitHub(`Delete single event on ${selectedDateKey}`);
             if (ok) renderModalList();
           };
-          item.appendChild(delBtn);
+
+          // 2. 一鍵批量刪除按鈕
+          const bulkDelBtn = document.createElement('button');
+          bulkDelBtn.className = 'bulk-del-btn';
+          bulkDelBtn.textContent = '批量刪';
+          bulkDelBtn.title = '一鍵刪除本週、本月或今年相同的活動';
+          bulkDelBtn.onclick = async () => {
+            const choice = prompt(
+              `要一鍵刪除所有「${ev.time ? ev.time + ' ' : ''}${ev.title}」的哪個範圍？\n` +
+              `請輸入數字：\n` +
+              `1 = 刪除【本週】所有相同活動\n` +
+              `2 = 刪除【本月】所有相同活動\n` +
+              `3 = 刪除【今年】所有相同活動`
+            );
+
+            let mode = '';
+            if (choice === '1') mode = 'week_all';
+            else if (choice === '2') mode = 'month_all';
+            else if (choice === '3') {
+              // 取得整年 365/366 天
+              const y = parseDateKey(selectedDateKey).getFullYear();
+              const allYearKeys = [];
+              for (let m = 0; m < 12; m++) {
+                const days = new Date(y, m + 1, 0).getDate();
+                for (let d = 1; d <= days; d++) {
+                  allYearKeys.push(formatDateKey(new Date(y, m, d)));
+                }
+              }
+              let removedCount = 0;
+              allYearKeys.forEach(k => {
+                if (eventsData[k]) {
+                  const before = eventsData[k].length;
+                  eventsData[k] = eventsData[k].filter(x => !(x.title === ev.title && (x.time || '') === (ev.time || '')));
+                  removedCount += (before - eventsData[k].length);
+                  if (eventsData[k].length === 0) delete eventsData[k];
+                }
+              });
+              if (removedCount > 0) {
+                const ok = await saveEventsToGitHub(`Bulk delete ${removedCount} events in year`);
+                if (ok) {
+                  alert(`已一鍵刪除今年共 ${removedCount} 筆相同活動！`);
+                  renderModalList();
+                }
+              }
+              return;
+            } else {
+              return; // 取消或輸入無效
+            }
+
+            const targetKeys = getTargetDateKeys(selectedDateKey, mode);
+            let removedCount = 0;
+            targetKeys.forEach(k => {
+              if (eventsData[k]) {
+                const before = eventsData[k].length;
+                eventsData[k] = eventsData[k].filter(x => !(x.title === ev.title && (x.time || '') === (ev.time || '')));
+                removedCount += (before - eventsData[k].length);
+                if (eventsData[k].length === 0) delete eventsData[k];
+              }
+            });
+
+            if (removedCount > 0) {
+              const ok = await saveEventsToGitHub(`Bulk delete ${removedCount} events (${mode})`);
+              if (ok) {
+                alert(`已一鍵刪除共 ${removedCount} 筆相同活動！`);
+                renderModalList();
+              }
+            }
+          };
+
+          actionsDiv.appendChild(delBtn);
+          actionsDiv.appendChild(bulkDelBtn);
+          item.appendChild(actionsDiv);
         }
 
         listEl.appendChild(item);
       });
     }
 
-    // 新增活動
+    // 確認新增（支援單日與一鍵批量新增）
     document.getElementById('saveEventBtn').addEventListener('click', async () => {
       const time = document.getElementById('eventTime').value;
       const title = document.getElementById('eventTitle').value.trim();
+      const repeatMode = document.getElementById('repeatMode').value;
+
       if (!title) {
         alert('請輸入活動名稱！');
         return;
       }
 
-      if (!eventsData[selectedDateKey]) eventsData[selectedDateKey] = [];
-      eventsData[selectedDateKey].push({
-        id: Date.now().toString(),
-        time: time,
-        title: title
+      const targetKeys = getTargetDateKeys(selectedDateKey, repeatMode);
+      const baseTimestamp = Date.now();
+
+      targetKeys.forEach((dateKey, idx) => {
+        if (!eventsData[dateKey]) eventsData[dateKey] = [];
+        eventsData[dateKey].push({
+          id: `${baseTimestamp}-${idx}`,
+          time: time,
+          title: title
+        });
       });
 
-      const ok = await saveEventsToGitHub();
+      const ok = await saveEventsToGitHub(`Add ${targetKeys.length} event(s) [${repeatMode}]`);
       if (ok) {
         document.getElementById('eventTitle').value = '';
+        document.getElementById('repeatMode').value = 'single';
         renderModalList();
+        if (targetKeys.length > 1) {
+          alert(`已一鍵新增至共 ${targetKeys.length} 個日期並存檔完成！`);
+        }
       }
     });
 
-    // 關閉視窗與導航事件
+    // 視窗關閉與月份切換
     document.getElementById('closeModal').addEventListener('click', () => dayModal.classList.remove('active'));
     dayModal.addEventListener('click', (e) => { if (e.target === dayModal) dayModal.classList.remove('active'); });
-    
     yearSelect.addEventListener('change', (e) => { currentYear = parseInt(e.target.value); renderCalendar(); });
     monthSelect.addEventListener('change', (e) => { currentMonth = parseInt(e.target.value); renderCalendar(); });
     
@@ -401,10 +708,7 @@
       renderCalendar();
     });
 
-    // 啟動初始化
-    updateAuthUI();
-    renderCalendar();
-    loadEventsFromGitHub();
+    checkSavedSession();
   </script>
 </body>
 </html>
