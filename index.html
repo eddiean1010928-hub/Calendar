@@ -101,7 +101,7 @@
     /* 單日放大編輯視窗 (Modal) */
     .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(2px); z-index: 100; justify-content: center; align-items: center; padding: 16px; }
     .modal-overlay.active { display: flex; }
-    .modal-card { background: var(--card); width: 100%; max-width: 460px; border-radius: 16px; padding: 20px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); max-height: 88vh; display: flex; flex-direction: column; }
+    .modal-card { background: var(--card); width: 100%; max-width: 460px; border-radius: 16px; padding: 20px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); max-height: 90vh; display: flex; flex-direction: column; }
     .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
     .modal-title { font-size: 18px; font-weight: 700; }
     .close-btn { border: none; background: #f1f5f9; width: 32px; height: 32px; border-radius: 50%; font-size: 18px; display: flex; align-items: center; justify-content: center; }
@@ -114,11 +114,13 @@
     .del-btn { background: #fee2e2; color: #dc2626; border: none; padding: 6px 9px; font-size: 12px; border-radius: 6px; font-weight: 600; }
     .bulk-del-btn { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; padding: 6px 9px; font-size: 12px; border-radius: 6px; font-weight: 600; }
 
+    /* 新增表單排版（開始時間 ~ 結束時間） */
     .add-form { display: flex; flex-direction: column; gap: 10px; padding-top: 12px; border-top: 1px solid var(--border); }
-    .input-row { display: flex; gap: 8px; }
-    input[type="time"], input[type="text"], select { padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; background: #fff; }
-    input[type="time"] { width: 110px; }
-    input[type="text"] { flex: 1; }
+    .time-range-row { display: flex; align-items: center; gap: 6px; }
+    .time-range-row span { font-size: 13px; color: var(--muted); font-weight: 600; }
+    input[type="time"], input[type="text"], select { padding: 9px 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; background: #fff; }
+    input[type="time"] { flex: 1; min-width: 0; }
+    input[type="text"] { width: 100%; }
     .form-row-2 { display: flex; gap: 8px; }
     .form-row-2 select { flex: 1; color: var(--text); font-weight: 500; }
     .syncing { opacity: 0.6; pointer-events: none; }
@@ -174,7 +176,7 @@
     <!-- 上課時數統計面板 -->
     <div class="stats-card">
       <div class="stats-title">
-        <span>📊 本月學習時數統計</span>
+        <span>📊 本月學習時數統計（依實際起迄時間計算）</span>
         <span id="monthRangeLabel" style="font-size:12px; font-weight:normal;"></span>
       </div>
       <div class="stats-grid">
@@ -203,10 +205,15 @@
       <div class="event-list" id="modalEventList"></div>
 
       <div class="add-form" id="addForm">
-        <div class="input-row">
-          <input type="time" id="eventTime">
-          <input type="text" id="eventTitle" placeholder="輸入活動名稱 (例: 數學課、寫程式)...">
+        <!-- 開始時間與結束時間雙欄位 -->
+        <div class="time-range-row">
+          <span>時間：</span>
+          <input type="time" id="eventStartTime" title="開始時間">
+          <span>～</span>
+          <input type="time" id="eventEndTime" title="結束時間">
         </div>
+        <input type="text" id="eventTitle" placeholder="輸入活動名稱 (例: 數學課、寫程式)...">
+        
         <div class="form-row-2">
           <select id="eventCategory">
             <option value="class">🎓 學業 - 上課</option>
@@ -230,12 +237,12 @@
 
   <script>
     // =========================================================================
-    // 【設定區】帳號與 GitHub 資訊
+    // 【設定區】帳號與 GitHub 資訊（請確認與你的倉庫名稱一致，例如 Calendar）
     // =========================================================================
     const USERS = [
       { username: 'eddiean1010928', password: 'eddie0928', label: 'Eddie (管理員)' },
     ];
-    const GITHUB_OWNER = 'eddiean1010928'; 
+    const GITHUB_OWNER = 'eddiean1010928-hub'; 
     const GITHUB_REPO = 'Calendar';
     const DATA_FILE = 'events.json';
 
@@ -288,6 +295,29 @@
       return new Date(y, m - 1, d);
     }
 
+    // 格式化顯示時間（支援只有頭、有頭有尾、或舊資料相容）
+    function formatEventTimeDisplay(ev) {
+      const start = ev.startTime || ev.time || '';
+      const end = ev.endTime || '';
+      if (start && end) return `${start}~${end}`;
+      if (start) return start;
+      if (end) return `~${end}`;
+      return '';
+    }
+
+    // 計算單筆活動持續分鐘數（若有起迄時間則精準相減，否則預設 60 分鐘）
+    function getEventDurationMinutes(ev) {
+      const start = ev.startTime || ev.time || '';
+      const end = ev.endTime || '';
+      if (start && end) {
+        const [sh, sm] = start.split(':').map(Number);
+        const [eh, em] = end.split(':').map(Number);
+        const diff = (eh * 60 + em) - (sh * 60 + sm);
+        return diff > 0 ? diff : 60;
+      }
+      return 60;
+    }
+
     function getTargetDateKeys(baseDateKey, mode) {
       const baseDate = parseDateKey(baseDateKey);
       const y = baseDate.getFullYear();
@@ -324,7 +354,6 @@
       return keys;
     }
 
-    // 計算本月上課與自主時數，並換算成「一週平均」
     function calculateMonthlyStats() {
       let totalClassMinutes = 0;
       let totalSelfMinutes = 0;
@@ -336,18 +365,15 @@
         const dayEvents = eventsData[dateKey] || [];
 
         dayEvents.forEach(ev => {
-          // 如果有填時間 (例如 "08:30" 到結束 或僅有一個時間)，預設每堂課/活動 1 小時 (60分鐘)，若有包含時間長度也可依需求調整
-          // 這裡若無結束時間，預設單筆事件為 1 小時 (60 分鐘)
-          const durationMins = 60; 
+          const mins = getEventDurationMinutes(ev);
           if (ev.category === 'class') {
-            totalClassMinutes += durationMins;
+            totalClassMinutes += mins;
           } else if (ev.category === 'self') {
-            totalSelfMinutes += durationMins;
+            totalSelfMinutes += mins;
           }
         });
       }
 
-      // 計算本月包含幾週 (天數 / 7)
       const weeksInMonth = daysInMonth / 7;
       const avgClass = (totalClassMinutes / 60) / weeksInMonth;
       const avgSelf = (totalSelfMinutes / 60) / weeksInMonth;
@@ -427,7 +453,7 @@
 
     function updateKeyButtonStatus() {
       const btn = document.getElementById('bindKeyBtn');
-      const hasToken = localStorage.getItem('gh_calendar_token');
+      const hasToken = !!localStorage.getItem('gh_calendar_token');
       if (hasToken) {
         btn.textContent = '存檔鑰匙已就緒';
         btn.classList.add('ready');
@@ -458,7 +484,7 @@
         if (token) headers['Authorization'] = `Bearer ${token}`;
 
         const res = await fetch(url, { headers });
-        if (!res.ok) throw new Error('讀取失敗');
+        if (!res.ok) throw new Error('讀取失敗，請確認 GITHUB_OWNER、倉庫名稱與 events.json 是否存在');
         
         const data = await res.json();
         fileSha = data.sha;
@@ -467,6 +493,7 @@
         renderCalendar();
       } catch (err) {
         console.error(err);
+        alert(err.message);
       }
     }
 
@@ -516,6 +543,14 @@
       }
     }
 
+    function sortEventsByTime(list) {
+      return list.sort((a, b) => {
+        const ta = a.startTime || a.time || '99:99';
+        const tb = b.startTime || b.time || '99:99';
+        return ta.localeCompare(tb);
+      });
+    }
+
     function renderCalendar() {
       yearSelect.value = currentYear;
       monthSelect.value = currentMonth;
@@ -554,12 +589,13 @@
         numDiv.textContent = d;
         cell.appendChild(numDiv);
 
-        const dayEvents = (eventsData[dateKey] || []).sort((a, b) => (a.time || '99:99').localeCompare(b.time || '99:99'));
+        const dayEvents = sortEventsByTime([...(eventsData[dateKey] || [])]);
         dayEvents.forEach(ev => {
           const pill = document.createElement('div');
           const catInfo = CATEGORIES[ev.category] || CATEGORIES.class;
           pill.className = `event-pill ${catInfo.class}`;
-          pill.textContent = `${ev.time ? ev.time + ' ' : ''}${ev.title}`;
+          const timeStr = formatEventTimeDisplay(ev);
+          pill.textContent = `${timeStr ? timeStr + ' ' : ''}${ev.title}`;
           cell.appendChild(pill);
         });
 
@@ -567,7 +603,6 @@
         calendarGrid.appendChild(cell);
       }
 
-      // 每次渲染完日曆，順便計算統計時數
       calculateMonthlyStats();
     }
 
@@ -578,7 +613,8 @@
       const wName = weekdayNames[baseDate.getDay()];
 
       document.getElementById('modalDateTitle').textContent = `${currentYear} 年 ${currentMonth + 1} 月 ${dayNum} 日 (週${wName})`;
-      document.getElementById('eventTime').value = '';
+      document.getElementById('eventStartTime').value = '';
+      document.getElementById('eventEndTime').value = '';
       document.getElementById('eventTitle').value = '';
       document.getElementById('eventCategory').value = 'class';
       document.getElementById('repeatMode').value = 'single';
@@ -595,7 +631,7 @@
       const listEl = document.getElementById('modalEventList');
       listEl.innerHTML = '';
       const isEditable = currentUser && currentUser !== 'guest';
-      const dayEvents = (eventsData[selectedDateKey] || []).sort((a, b) => (a.time || '99:99').localeCompare(b.time || '99:99'));
+      const dayEvents = sortEventsByTime([...(eventsData[selectedDateKey] || [])]);
 
       if (dayEvents.length === 0) {
         listEl.innerHTML = '<div style="text-align:center; color:#94a3b8; padding:20px 0;">這天還沒有安排任何事情</div>';
@@ -607,11 +643,12 @@
         item.className = 'event-item';
         
         const catInfo = CATEGORIES[ev.category] || CATEGORIES.class;
+        const timeStr = formatEventTimeDisplay(ev) || '全天';
         const info = document.createElement('div');
         info.className = 'event-info';
         info.innerHTML = `
           <div style="font-size:12px; color:var(--primary); font-weight:600;">
-            ${ev.time || '全天'} <span style="background:#e2e8f0; color:#475569; padding:1px 5px; border-radius:4px; font-size:10px; margin-left:4px;">${catInfo.name}</span>
+            ${timeStr} <span style="background:#e2e8f0; color:#475569; padding:1px 5px; border-radius:4px; font-size:10px; margin-left:4px;">${catInfo.name}</span>
           </div>
           <div class="event-name">${ev.title}</div>
         `;
@@ -687,13 +724,19 @@
     }
 
     document.getElementById('saveEventBtn').addEventListener('click', async () => {
-      const time = document.getElementById('eventTime').value;
+      const startTime = document.getElementById('eventStartTime').value;
+      const endTime = document.getElementById('eventEndTime').value;
       const title = document.getElementById('eventTitle').value.trim();
       const category = document.getElementById('eventCategory').value;
       const repeatMode = document.getElementById('repeatMode').value;
 
       if (!title) {
         alert('請輸入活動名稱！');
+        return;
+      }
+
+      if (startTime && endTime && endTime < startTime) {
+        alert('結束時間不能早於開始時間喔！');
         return;
       }
 
@@ -704,7 +747,8 @@
         if (!eventsData[dateKey]) eventsData[dateKey] = [];
         eventsData[dateKey].push({
           id: `${baseTimestamp}-${idx}`,
-          time: time,
+          startTime: startTime,
+          endTime: endTime,
           title: title,
           category: category
         });
