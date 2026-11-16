@@ -292,8 +292,8 @@
     }
 
     function parseDateKey(dateKey) {
-      const [y, m, d] = dateKey.split('-').map(Number);
-      return new Date(y, m - 1, d);
+      const [y, m, d] = (dateKey || '').split('-').map(Number);
+      return new Date(y || 2026, (m || 1) - 1, d || 1);
     }
 
     function formatEventTimeDisplay(ev) {
@@ -320,49 +320,55 @@
     }
 
     function getTargetDateKeys(baseDateKey, mode) {
-      const baseDate = parseDateKey(baseDateKey);
-      const y = baseDate.getFullYear();
-      const m = baseDate.getMonth();
-      const d = baseDate.getDate();
-      const weekday = baseDate.getDay();
-      const keys = [];
+      try {
+        if (!baseDateKey) return [formatDateKey(new Date())];
+        const baseDate = parseDateKey(baseDateKey);
+        const y = baseDate.getFullYear();
+        const m = baseDate.getMonth();
+        const d = baseDate.getDate();
+        const weekday = baseDate.getDay();
+        const keys = [];
 
-      if (mode === 'single') {
-        keys.push(baseDateKey);
-      } else if (mode === 'week_all') {
-        const sunday = new Date(y, m, d - weekday);
-        for (let i = 0; i < 7; i++) {
-          const cur = new Date(sunday.getFullYear(), sunday.getMonth(), sunday.getDate() + i);
-          keys.push(formatDateKey(cur));
-        }
-      } else if (mode === 'month_all') {
-        const daysInMonth = new Date(y, m + 1, 0).getDate();
-        for (let day = 1; day <= daysInMonth; day++) {
-          keys.push(formatDateKey(new Date(y, m, day)));
-        }
-      } else if (mode === 'month_weekday') {
-        const daysInMonth = new Date(y, m + 1, 0).getDate();
-        for (let day = 1; day <= daysInMonth; day++) {
-          const cur = new Date(y, m, day);
-          if (cur.getDay() === weekday) keys.push(formatDateKey(cur));
-        }
-      } else if (mode === 'year_weekday') {
-        for (let month = 0; month < 12; month++) {
-          const daysInTargetMonth = new Date(y, month + 1, 0).getDate();
-          for (let day = 1; day <= daysInTargetMonth; day++) {
-            const cur = new Date(y, month, day);
-            if (cur.getDay() === weekday) {
-              keys.push(formatDateKey(cur));
+        if (mode === 'single' || !mode) {
+          keys.push(baseDateKey);
+        } else if (mode === 'week_all') {
+          const sunday = new Date(y, m, d - weekday);
+          for (let i = 0; i < 7; i++) {
+            const cur = new Date(sunday.getFullYear(), sunday.getMonth(), sunday.getDate() + i);
+            keys.push(formatDateKey(cur));
+          }
+        } else if (mode === 'month_all') {
+          const daysInMonth = new Date(y, m + 1, 0).getDate();
+          for (let day = 1; day <= daysInMonth; day++) {
+            keys.push(formatDateKey(new Date(y, m, day)));
+          }
+        } else if (mode === 'month_weekday') {
+          const daysInMonth = new Date(y, m + 1, 0).getDate();
+          for (let day = 1; day <= daysInMonth; day++) {
+            const cur = new Date(y, m, day);
+            if (cur.getDay() === weekday) keys.push(formatDateKey(cur));
+          }
+        } else if (mode === 'year_weekday') {
+          for (let month = 0; month < 12; month++) {
+            const daysInTargetMonth = new Date(y, month + 1, 0).getDate();
+            for (let day = 1; day <= daysInTargetMonth; day++) {
+              const cur = new Date(y, month, day);
+              if (cur.getDay() === weekday) {
+                keys.push(formatDateKey(cur));
+              }
             }
           }
+        } else if (mode === 'year_monthday') {
+          for (let month = 0; month < 12; month++) {
+            const daysInTargetMonth = new Date(y, month + 1, 0).getDate();
+            if (d <= daysInTargetMonth) keys.push(formatDateKey(new Date(y, month, d)));
+          }
         }
-      } else if (mode === 'year_monthday') {
-        for (let month = 0; month < 12; month++) {
-          const daysInTargetMonth = new Date(y, month + 1, 0).getDate();
-          if (d <= daysInTargetMonth) keys.push(formatDateKey(new Date(y, month, d)));
-        }
+        return keys.length > 0 ? keys : [baseDateKey];
+      } catch (e) {
+        console.error("getTargetDateKeys error:", e);
+        return [baseDateKey];
       }
-      return keys;
     }
 
     function calculateMonthlyStats() {
@@ -495,7 +501,12 @@
         if (token) headers['Authorization'] = `Bearer ${token}`;
 
         const res = await fetch(url, { headers });
-        if (!res.ok) throw new Error('讀取失敗');
+        if (!res.ok) {
+          // 如果檔案不存在，自動初始化空物件
+          eventsData = {};
+          fileSha = '';
+          return;
+        }
         
         const data = await res.json();
         fileSha = data.sha;
@@ -503,7 +514,8 @@
         eventsData = JSON.parse(decoded || '{}');
         renderCalendar();
       } catch (err) {
-        console.error(err);
+        console.error("Load error:", err);
+        eventsData = {};
       }
     }
 
@@ -522,6 +534,12 @@
         const jsonStr = JSON.stringify(eventsData, null, 2);
         const encoded = btoa(unescape(encodeURIComponent(jsonStr)));
 
+        const bodyData = {
+          message: `${commitMsg} by ${currentUser.username}`,
+          content: encoded
+        };
+        if (fileSha) bodyData.sha = fileSha;
+
         const res = await fetch(url, {
           method: 'PUT',
           headers: {
@@ -529,11 +547,7 @@
             'Accept': 'application/vnd.github.v3+json',
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({
-            message: `${commitMsg} by ${currentUser.username}`,
-            content: encoded,
-            sha: fileSha
-          })
+          body: JSON.stringify(bodyData)
         });
 
         if (!res.ok) {
@@ -778,7 +792,7 @@
           if (targetKeys.length > 1) alert(`已成功一鍵新增至 ${targetKeys.length} 個日期！`);
         }
       } catch (err) {
-        alert('存檔失敗：Type error 處理完成');
+        alert('存檔失敗： ' + err.message);
         console.error(err);
       }
     });
