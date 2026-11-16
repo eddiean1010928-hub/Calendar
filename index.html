@@ -227,6 +227,7 @@
             <option value="week_all">本週每一天</option>
             <option value="month_all">本月每一天</option>
             <option value="month_weekday">本月每個同星期幾</option>
+            <option value="year_weekday">今年每個同星期幾</option>
             <option value="year_monthday">今年每月同一天</option>
           </select>
         </div>
@@ -237,7 +238,7 @@
 
   <script>
     // =========================================================================
-    // 【設定區】帳號與 GitHub 資訊（請確認與你的倉庫名稱一致，例如 Calendar）
+    // 【設定區】帳號與 GitHub 資訊
     // =========================================================================
     const USERS = [
       { username: 'eddiean1010928', password: 'eddie0928', label: 'Eddie (管理員)' },
@@ -295,7 +296,6 @@
       return new Date(y, m - 1, d);
     }
 
-    // 格式化顯示時間（支援只有頭、有頭有尾、或舊資料相容）
     function formatEventTimeDisplay(ev) {
       const start = ev.startTime || ev.time || '';
       const end = ev.endTime || '';
@@ -305,7 +305,6 @@
       return '';
     }
 
-    // 計算單筆活動持續分鐘數（若有起迄時間則精準相減，否則預設 60 分鐘）
     function getEventDurationMinutes(ev) {
       const start = ev.startTime || ev.time || '';
       const end = ev.endTime || '';
@@ -344,6 +343,17 @@
         for (let day = 1; day <= daysInMonth; day++) {
           const cur = new Date(y, m, day);
           if (cur.getDay() === weekday) keys.push(formatDateKey(cur));
+        }
+      } else if (mode === 'year_weekday') {
+        // 今年整年（1月到12月）每個相同的星期幾
+        for (let month = 0; month < 12; month++) {
+          const daysInTargetMonth = new Date(y, month + 1, 0).getDate();
+          for (let day = 1; day <= daysInTargetMonth; day++) {
+            const cur = new Date(y, month, day);
+            if (cur.getDay() === weekday) {
+              keys.push(formatDateKey(cur));
+            }
+          }
         }
       } else if (mode === 'year_monthday') {
         for (let month = 0; month < 12; month++) {
@@ -493,7 +503,6 @@
         renderCalendar();
       } catch (err) {
         console.error(err);
-        alert(err.message);
       }
     }
 
@@ -619,9 +628,11 @@
       document.getElementById('eventCategory').value = 'class';
       document.getElementById('repeatMode').value = 'single';
 
+      // 動態帶入當天的星期幾與日期，方便一眼辨識
       const repeatSelect = document.getElementById('repeatMode');
-      repeatSelect.options[3].textContent = `一鍵新增：本月每個星期${wName}`;
-      repeatSelect.options[4].textContent = `一鍵新增：今年每月 ${dayNum} 號`;
+      repeatSelect.options[3].textContent = `本月每個星期${wName}`;
+      repeatSelect.options[4].textContent = `今年每個星期${wName} (整年每週)`;
+      repeatSelect.options[5].textContent = `今年每月 ${dayNum} 號`;
 
       renderModalList();
       dayModal.classList.add('active');
