@@ -930,24 +930,17 @@
       "category": "class"
     },
     {
-      "id": "1794914660031-2",
-      "startTime": "20:00",
-      "endTime": "21:30",
-      "title": "鋼琴陪練",
-      "category": "class"
-    },
-    {
-      "id": "1794914789227-0",
-      "startTime": "17:30",
-      "endTime": "19:00",
-      "title": "樂理",
-      "category": "class"
-    },
-    {
       "id": "1794914800661-0",
       "startTime": "17:30",
       "endTime": "19:00",
       "title": "樂理",
+      "category": "class"
+    },
+    {
+      "id": "1794914660031-2",
+      "startTime": "20:00",
+      "endTime": "21:30",
+      "title": "鋼琴陪練",
       "category": "class"
     }
   ],
