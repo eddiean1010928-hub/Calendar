@@ -360,7 +360,7 @@
       return 60;
     }
 
-    // 嚴格限制：只往後創，且絕不超過當年
+    // 嚴格限制：只從選擇當天往後創，且絕不超過當年 12 月 31 日
     function getTargetDateKeys(baseDateKey, mode) {
       try {
         if (!baseDateKey) return [formatDateKey(new Date())];
@@ -394,7 +394,7 @@
           const daysInMonth = new Date(y, m + 1, 0).getDate();
           for (let day = d; day <= daysInMonth; day++) {
             const cur = new Date(y, m, day);
-            if (cur.getDay() === weekday && cur <= yearEnd) {
+            if (cur.getDay() === weekday && cur >= baseDate && cur <= yearEnd) {
               keys.push(formatDateKey(cur));
             }
           }
@@ -404,17 +404,18 @@
             const daysInTargetMonth = new Date(y, month + 1, 0).getDate();
             for (let day = startDay; day <= daysInTargetMonth; day++) {
               const cur = new Date(y, month, day);
-              if (cur.getDay() === weekday && cur <= yearEnd) {
+              if (cur.getDay() === weekday && cur >= baseDate && cur <= yearEnd) {
                 keys.push(formatDateKey(cur));
               }
             }
           }
         } else if (mode === 'year_monthday') {
           for (let month = m; month < 12; month++) {
+            const targetDay = (month === m) ? d : d;
             const daysInTargetMonth = new Date(y, month + 1, 0).getDate();
-            if (d <= daysInTargetMonth) {
-              const cur = new Date(y, month, d);
-              if (cur <= yearEnd) {
+            if (targetDay <= daysInTargetMonth) {
+              const cur = new Date(y, month, targetDay);
+              if (cur >= baseDate && cur <= yearEnd) {
                 keys.push(formatDateKey(cur));
               }
             }
@@ -927,7 +928,7 @@
           document.getElementById('eventTitle').value = '';
           resetFormToCreateMode();
           renderModalList();
-          if (targetKeys.length > 1) alert(`已成功一鍵新增至同年 ${targetKeys.length} 個日期！`);
+          if (targetKeys.length > 1) alert(`已成功一鍵新增至同年往後 ${targetKeys.length} 個日期！`);
         }
       } catch (err) {
         alert('存檔失敗： ' + err.message);
