@@ -905,6 +905,13 @@
       "endTime": "16:00",
       "title": "上學",
       "category": "class"
+    },
+    {
+      "id": "1794914620385-0",
+      "startTime": "20:30",
+      "endTime": "21:00",
+      "title": "鋼琴陪練",
+      "category": "class"
     }
   ],
   "2026-11-17": [
@@ -914,6 +921,13 @@
       "endTime": "16:00",
       "title": "上學",
       "category": "class"
+    },
+    {
+      "id": "1794914620385-1",
+      "startTime": "20:30",
+      "endTime": "21:00",
+      "title": "鋼琴陪練",
+      "category": "class"
     }
   ],
   "2026-11-24": [
@@ -922,6 +936,13 @@
       "startTime": "07:00",
       "endTime": "16:00",
       "title": "上學",
+      "category": "class"
+    },
+    {
+      "id": "1794914620385-2",
+      "startTime": "20:30",
+      "endTime": "21:00",
+      "title": "鋼琴陪練",
       "category": "class"
     }
   ],
