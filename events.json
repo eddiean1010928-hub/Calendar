@@ -4306,5 +4306,50 @@
       "title": "國英補習",
       "category": "class"
     }
+  ],
+  "2026-11-01": [
+    {
+      "id": "1794914452341-0",
+      "startTime": "09:00",
+      "endTime": "13:00",
+      "title": "愛樂",
+      "category": "class"
+    }
+  ],
+  "2026-11-08": [
+    {
+      "id": "1794914452341-1",
+      "startTime": "09:00",
+      "endTime": "13:00",
+      "title": "愛樂",
+      "category": "class"
+    }
+  ],
+  "2026-11-15": [
+    {
+      "id": "1794914452341-2",
+      "startTime": "09:00",
+      "endTime": "13:00",
+      "title": "愛樂",
+      "category": "class"
+    }
+  ],
+  "2026-11-22": [
+    {
+      "id": "1794914452341-3",
+      "startTime": "09:00",
+      "endTime": "13:00",
+      "title": "愛樂",
+      "category": "class"
+    }
+  ],
+  "2026-11-29": [
+    {
+      "id": "1794914452341-4",
+      "startTime": "09:00",
+      "endTime": "13:00",
+      "title": "愛樂",
+      "category": "class"
+    }
   ]
 }
