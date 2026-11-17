@@ -97,9 +97,9 @@
 
     /* 標籤顏色 */
     .event-pill { font-size: 11px; padding: 2px 5px; border-radius: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500; }
-    .cat-class { background: #dbeafe; color: #1e40af; }      /* 藍色：學習(上課) */
+    .cat-class { background: #dbeafe; color: #1e40af; }      /* 藍色：學習 */
     .cat-self { background: #e0e7ff; color: #3730a3; }       /* 靛色：自主 */
-    .cat-life { background: #dcfce7; color: #166534; }       /* 綠色：日常 */
+    .cat-relax { background: #f0fdf4; color: #166534; }      /* 綠色：放鬆（可自選） */
     .cat-sport { background: #ffedd5; color: #9a3412; }      /* 橘色：運動 */
     .cat-fun { background: #f3e8ff; color: #6b21a8; }        /* 紫色：娛樂 */
 
@@ -111,7 +111,7 @@
     .modal-title { font-size: 18px; font-weight: 700; }
     .close-btn { border: none; background: #f1f5f9; width: 32px; height: 32px; border-radius: 50%; font-size: 18px; display: flex; align-items: center; justify-content: center; }
 
-    /* 每天點開來的專屬休息（無事）時間橫幅 */
+    /* 每天點開來的專屬「休息（無事）時間」顯示欄 */
     .daily-rest-banner {
       background: #f0fdf4;
       border: 1px solid #bbf7d0;
@@ -217,8 +217,8 @@
           <span class="stat-value" id="avgSelfDaily">0.0 小時</span>
         </div>
         <div class="stat-box" style="background: #f0fdf4; border-color: #bbf7d0;">
-          <span class="stat-label" style="color: #166534;">☕ 每日平均放鬆</span>
-          <span class="stat-value relax" id="avgRelaxDaily">24.0 小時</span>
+          <span class="stat-label" style="color: #166534;">☕ 每日平均放鬆 (自選)</span>
+          <span class="stat-value relax" id="avgRelaxDaily">0.0 小時</span>
         </div>
       </div>
     </div>
@@ -259,9 +259,9 @@
         
         <div class="form-row-2">
           <select id="eventCategory">
-            <option value="class">🎓 學業 - 學習 (上課)</option>
+            <option value="class">🎓 學業 - 學習</option>
             <option value="self">💻 學業 - 自主</option>
-            <option value="life">🌱 生活 - 日常</option>
+            <option value="relax">☕ 生活 - 放鬆 (可自選)</option>
             <option value="sport">⚡ 運動 - 健康</option>
             <option value="fun">🎮 娛樂 - 其它</option>
           </select>
@@ -290,7 +290,7 @@
     const CATEGORIES = {
       class: { name: '學習', class: 'cat-class' },
       self:  { name: '自主', class: 'cat-self' },
-      life:  { name: '日常', class: 'cat-life' },
+      relax: { name: '放鬆', class: 'cat-relax' },
       sport: { name: '運動', class: 'cat-sport' },
       fun:   { name: '娛樂', class: 'cat-fun' }
     };
@@ -412,7 +412,7 @@
       }
     }
 
-    // 上方數據中心：僅計算有事天數的「學習、自主、放鬆」每日平均
+    // 上方數據中心：計算學習、自主、放鬆（自選）的每日平均（僅算有事件的天數）
     function calculateDataCenterAverages() {
       let totalClassMins = 0;
       let totalSelfMins = 0;
@@ -427,26 +427,20 @@
 
         if (dayEvents.length > 0) {
           activeDaysCount++;
-          let dayBusyMins = 0;
-
           dayEvents.forEach(ev => {
             const mins = getEventDurationMinutes(ev);
             if (ev) {
               if (ev.category === 'class') totalClassMins += mins;
               else if (ev.category === 'self') totalSelfMins += mins;
-              dayBusyMins += mins;
+              else if (ev.category === 'relax') totalRelaxMins += mins;
             }
           });
-
-          let dayRelaxMins = 1440 - dayBusyMins;
-          if (dayRelaxMins < 0) dayRelaxMins = 0;
-          totalRelaxMins += dayRelaxMins;
         }
       }
 
       let avgClassDaily = 0;
       let avgSelfDaily = 0;
-      let avgRelaxDaily = 24;
+      let avgRelaxDaily = 0;
 
       if (activeDaysCount > 0) {
         avgClassDaily = (totalClassMins / 60) / activeDaysCount;
@@ -474,7 +468,7 @@
         `📅 統計有事天數：${stats.activeDays} 天\n` +
         `🎓 每日平均學習：${stats.classDaily} 小時/天\n` +
         `💻 每日平均自主：${stats.selfDaily} 小時/天\n` +
-        `☕ 每日平均放鬆：${stats.relaxDaily} 小時/天\n\n` +
+        `☕ 每日平均放鬆 (自選)：${stats.relaxDaily} 小時/天\n\n` +
         `✅ 此數據已成功記錄！`;
       alert(reportText);
     });
