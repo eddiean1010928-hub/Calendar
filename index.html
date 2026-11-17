@@ -72,13 +72,17 @@
     .btn-key { background: #fef3c7; color: #92400e; border-color: #fde68a; font-size: 13px; }
     .btn-key.ready { background: #eff6ff; color: #1e40af; border-color: #bfdbfe; }
 
-    /* 統計分析面板 */
-    .stats-card { background: var(--card); padding: 14px 16px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 15px; display: flex; flex-direction: column; gap: 8px; }
-    .stats-title { font-size: 14px; font-weight: 700; color: var(--muted); display: flex; justify-content: space-between; align-items: center; }
-    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+    /* 三維度平均統計面板 */
+    .stats-card { background: var(--card); padding: 14px 16px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 15px; display: flex; flex-direction: column; gap: 10px; }
+    .stats-title-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+    .stats-title { font-size: 14px; font-weight: 700; color: var(--muted); }
+    .btn-report { background: #10b981; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; }
+    .btn-report:hover { background: #059669; }
+
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
     .stat-box { background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 10px; display: flex; flex-direction: column; gap: 2px; }
-    .stat-label { font-size: 12px; color: var(--muted); font-weight: 600; }
-    .stat-value { font-size: 18px; font-weight: 700; color: var(--primary); }
+    .stat-label { font-size: 11px; color: var(--muted); font-weight: 600; }
+    .stat-value { font-size: 16px; font-weight: 700; color: var(--primary); }
 
     /* 月曆網格 */
     .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; background: var(--card); padding: 10px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
@@ -114,7 +118,7 @@
     .del-btn { background: #fee2e2; color: #dc2626; border: none; padding: 6px 9px; font-size: 12px; border-radius: 6px; font-weight: 600; }
     .bulk-del-btn { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; padding: 6px 9px; font-size: 12px; border-radius: 6px; font-weight: 600; }
 
-    /* 新增表單排版（開始時間 ~ 結束時間） */
+    /* 新增表單排版 */
     .add-form { display: flex; flex-direction: column; gap: 10px; padding-top: 12px; border-top: 1px solid var(--border); }
     .time-range-row { display: flex; align-items: center; gap: 6px; }
     .time-range-row span { font-size: 13px; color: var(--muted); font-weight: 600; }
@@ -173,20 +177,24 @@
       </div>
     </div>
 
-    <!-- 上課時數統計面板 -->
+    <!-- 三維度平均統計面板 (含報告記錄按鈕) -->
     <div class="stats-card">
-      <div class="stats-title">
-        <span>📊 本月學習時數統計（依實際起迄時間計算）</span>
-        <span id="monthRangeLabel" style="font-size:12px; font-weight:normal;"></span>
+      <div class="stats-title-row">
+        <span class="stats-title" id="statsCardTitle">📊 本月每週平均時間統計報告</span>
+        <button class="btn-report" id="reportBtn">📋 產出報告：記錄本週平均</button>
       </div>
       <div class="stats-grid">
         <div class="stat-box">
-          <span class="stat-label">🎓 上課：一週平均時數</span>
-          <span class="stat-value" id="avgClassHours">0.0 小時</span>
+          <span class="stat-label">🎓 每日平均上課</span>
+          <span class="stat-value" id="avgClassDaily">0.0 小時</span>
         </div>
         <div class="stat-box">
-          <span class="stat-label">💻 自主：一週平均時數</span>
-          <span class="stat-value" id="avgSelfHours">0.0 小時</span>
+          <span class="stat-label">💻 每日平均自主</span>
+          <span class="stat-value" id="avgSelfDaily">0.0 小時</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-label">🌱 每日平均休息</span>
+          <span class="stat-value" id="avgRestDaily">0.0 小時</span>
         </div>
       </div>
     </div>
@@ -205,20 +213,19 @@
       <div class="event-list" id="modalEventList"></div>
 
       <div class="add-form" id="addForm">
-        <!-- 開始時間與結束時間雙欄位 -->
         <div class="time-range-row">
           <span>時間：</span>
           <input type="time" id="eventStartTime" title="開始時間">
           <span>～</span>
           <input type="time" id="eventEndTime" title="結束時間">
         </div>
-        <input type="text" id="eventTitle" placeholder="輸入活動名稱 (例: 數學課、寫程式)...">
+        <input type="text" id="eventTitle" placeholder="輸入活動名稱 (例: 數學課、寫程式、休息)...">
         
         <div class="form-row-2">
           <select id="eventCategory">
             <option value="class">🎓 學業 - 上課</option>
             <option value="self">💻 學業 - 自主</option>
-            <option value="life">🌱 生活 - 日常</option>
+            <option value="life">🌱 生活 - 休息</option>
             <option value="sport">⚡ 運動 - 健康</option>
             <option value="fun">🎮 娛樂 - 其他</option>
           </select>
@@ -237,9 +244,6 @@
   </div>
 
   <script>
-    // =========================================================================
-    // 【設定區】帳號與 GitHub 資訊
-    // =========================================================================
     const USERS = [
       { username: 'eddiean1010928', password: 'eddie0928', label: 'Eddie (管理員)' },
     ];
@@ -250,7 +254,7 @@
     const CATEGORIES = {
       class: { name: '上課', class: 'cat-class' },
       self:  { name: '自主', class: 'cat-self' },
-      life:  { name: '生活', class: 'cat-life' },
+      life:  { name: '休息', class: 'cat-life' },
       sport: { name: '運動', class: 'cat-sport' },
       fun:   { name: '娛樂', class: 'cat-fun' }
     };
@@ -371,9 +375,11 @@
       }
     }
 
-    function calculateMonthlyStats() {
-      let totalClassMinutes = 0;
-      let totalSelfMinutes = 0;
+    // 計算每週的每日平均時數（上課、自主、休息）
+    function calculateWeeklyDailyAverages() {
+      let totalClassMins = 0;
+      let totalSelfMins = 0;
+      let totalRestMins = 0;
 
       const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
       
@@ -383,22 +389,48 @@
 
         dayEvents.forEach(ev => {
           const mins = getEventDurationMinutes(ev);
-          if (ev && ev.category === 'class') {
-            totalClassMinutes += mins;
-          } else if (ev && ev.category === 'self') {
-            totalSelfMinutes += mins;
-          }
+          if (ev && ev.category === 'class') totalClassMins += mins;
+          else if (ev && ev.category === 'self') totalSelfMins += mins;
+          else if (ev && ev.category === 'life') totalRestMins += mins; // life 代表休息
         });
       }
 
-      const weeksInMonth = daysInMonth / 7;
-      const avgClass = (totalClassMinutes / 60) / weeksInMonth;
-      const avgSelf = (totalSelfMinutes / 60) / weeksInMonth;
+      // 總天數轉換成「總週數」，再算出「一週的每日平均」
+      const totalWeeks = daysInMonth / 7;
+      const avgClassWeekly = (totalClassMins / 60) / totalWeeks;
+      const avgSelfWeekly = (totalSelfMins / 60) / totalWeeks;
+      const avgRestWeekly = (totalRestMins / 60) / totalWeeks;
 
-      document.getElementById('avgClassHours').textContent = `${avgClass.toFixed(1)} 小時`;
-      document.getElementById('avgSelfHours').textContent = `${avgSelf.toFixed(1)} 小時`;
-      document.getElementById('monthRangeLabel').textContent = `(${currentYear}年${currentMonth + 1}月共 ${daysInMonth} 天)`;
+      // 換算成每日平均（除以 7 天）
+      const avgClassDaily = avgClassWeekly / 7;
+      const avgSelfDaily = avgSelfWeekly / 7;
+      const avgRestDaily = avgRestWeekly / 7;
+
+      document.getElementById('avgClassDaily').textContent = `${avgClassDaily.toFixed(1)} 小時`;
+      document.getElementById('avgSelfDaily').textContent = `${avgSelfDaily.toFixed(1)} 小時`;
+      document.getElementById('avgRestDaily').textContent = `${avgRestDaily.toFixed(1)} 小時`;
+      document.getElementById('statsCardTitle').textContent = `📊 ${currentYear}年${currentMonth + 1}月 每週每日平均時間統計`;
+
+      return {
+        classDaily: avgClassDaily.toFixed(1),
+        selfDaily: avgSelfDaily.toFixed(1),
+        restDaily: avgRestDaily.toFixed(1),
+        classWeekly: avgClassWeekly.toFixed(1),
+        selfWeekly: avgSelfWeekly.toFixed(1),
+        restWeekly: avgRestWeekly.toFixed(1)
+      };
     }
+
+    // 產出報告按鈕事件：記錄每週平均時間當作紀錄
+    document.getElementById('reportBtn').addEventListener('click', () => {
+      const stats = calculateWeeklyDailyAverages();
+      const reportText = `📋 【${currentYear}年 ${currentMonth + 1}月 時間規劃報告】\n\n` +
+        `🎓 上課：\n  - 一週總平均：${stats.classWeekly} 小時\n  - 一週的每日平均：${stats.classDaily} 小時/天\n\n` +
+        `💻 自主練習：\n  - 一週總平均：${stats.selfWeekly} 小時\n  - 一週的每日平均：${stats.selfDaily} 小時/天\n\n` +
+        `🌱 休息時間：\n  - 一週總平均：${stats.restWeekly} 小時\n  - 一週的每日平均：${stats.restDaily} 小時/天\n\n` +
+        `✅ 此數據已成功作為本月紀錄統計完成！`;
+      alert(reportText);
+    });
 
     function checkSavedSession() {
       const savedSession = localStorage.getItem('calendar_session');
@@ -502,7 +534,6 @@
 
         const res = await fetch(url, { headers });
         if (!res.ok) {
-          // 如果檔案不存在，自動初始化空物件
           eventsData = {};
           fileSha = '';
           return;
@@ -515,7 +546,6 @@
         renderCalendar();
       } catch (err) {
         console.error("Load error:", err);
-        eventsData = {};
       }
     }
 
@@ -630,7 +660,7 @@
         calendarGrid.appendChild(cell);
       }
 
-      calculateMonthlyStats();
+      calculateWeeklyDailyAverages();
     }
 
     function openDayModal(dateKey, dayNum) {
@@ -697,49 +727,36 @@
             if (ok) renderModalList();
           };
 
+          // 一鍵刪除：從這個活動之後的所有此活動
           const bulkDelBtn = document.createElement('button');
           bulkDelBtn.className = 'bulk-del-btn';
-          bulkDelBtn.textContent = '批量刪';
+          bulkDelBtn.textContent = '之後全刪';
           bulkDelBtn.onclick = async () => {
-            const choice = prompt(`要一鍵刪除所有「${ev.title}」的範圍？\n1 = 本週\n2 = 本月\n3 = 今年`);
-            let mode = '';
-            if (choice === '1') mode = 'week_all';
-            else if (choice === '2') mode = 'month_all';
-            else if (choice === '3') {
-              const y = parseDateKey(selectedDateKey).getFullYear();
-              let count = 0;
-              for (let m = 0; m < 12; m++) {
-                const days = new Date(y, m + 1, 0).getDate();
-                for (let d = 1; d <= days; d++) {
-                  const k = formatDateKey(new Date(y, m, d));
-                  if (eventsData[k]) {
-                    const before = eventsData[k].length;
-                    eventsData[k] = eventsData[k].filter(x => x && !(x.title === ev.title && x.category === ev.category));
-                    count += (before - eventsData[k].length);
-                    if (eventsData[k].length === 0) delete eventsData[k];
-                  }
-                }
-              }
-              if (count > 0 && await saveEventsToGitHub(`Bulk delete year`)) {
-                alert(`已刪除今年共 ${count} 筆活動！`);
-                renderModalList();
-              }
-              return;
-            } else return;
-
-            const targetKeys = getTargetDateKeys(selectedDateKey, mode);
+            if (!confirm(`確定要從今天 (${selectedDateKey}) 開始，刪除所有未來相同名稱「${ev.title}」的活動嗎？`)) return;
+            
             let count = 0;
-            targetKeys.forEach(k => {
-              if (eventsData[k]) {
-                const before = eventsData[k].length;
-                eventsData[k] = eventsData[k].filter(x => x && !(x.title === ev.title && x.category === ev.category));
-                count += (before - eventsData[k].length);
-                if (eventsData[k].length === 0) delete eventsData[k];
+            const baseDateObj = parseDateKey(selectedDateKey);
+
+            // 掃描所有已儲存的日期
+            Object.keys(eventsData).forEach(dateKey => {
+              const curDateObj = parseDateKey(dateKey);
+              // 如果日期大於或等於當前選擇的日期
+              if (curDateObj >= baseDateObj && Array.isArray(eventsData[dateKey])) {
+                const beforeLen = eventsData[dateKey].length;
+                eventsData[dateKey] = eventsData[dateKey].filter(x => x && !(x.title === ev.title && x.category === ev.category));
+                count += (beforeLen - eventsData[dateKey].length);
+                if (eventsData[dateKey].length === 0) delete eventsData[dateKey];
               }
             });
-            if (count > 0 && await saveEventsToGitHub(`Bulk delete`)) {
-              alert(`已刪除共 ${count} 筆活動！`);
-              renderModalList();
+
+            if (count > 0) {
+              const ok = await saveEventsToGitHub(`Bulk delete from ${selectedDateKey} onwards`);
+              if (ok) {
+                alert(`已成功刪除從今天之後共 ${count} 筆相同活動！`);
+                renderModalList();
+              }
+            } else {
+              alert('沒有找到自此之後符合的活動可以刪除。');
             }
           };
 
