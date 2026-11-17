@@ -896,6 +896,13 @@
       "endTime": "16:00",
       "title": "上學",
       "category": "class"
+    },
+    {
+      "id": "1794914660031-0",
+      "startTime": "20:00",
+      "endTime": "21:30",
+      "title": "鋼琴陪練",
+      "category": "class"
     }
   ],
   "2026-11-10": [
@@ -910,6 +917,13 @@
       "id": "1794914620385-0",
       "startTime": "20:30",
       "endTime": "21:00",
+      "title": "鋼琴陪練",
+      "category": "class"
+    },
+    {
+      "id": "1794914660031-1",
+      "startTime": "20:00",
+      "endTime": "21:30",
       "title": "鋼琴陪練",
       "category": "class"
     }
@@ -928,6 +942,13 @@
       "endTime": "21:00",
       "title": "鋼琴陪練",
       "category": "class"
+    },
+    {
+      "id": "1794914660031-2",
+      "startTime": "20:00",
+      "endTime": "21:30",
+      "title": "鋼琴陪練",
+      "category": "class"
     }
   ],
   "2026-11-24": [
@@ -942,6 +963,13 @@
       "id": "1794914620385-2",
       "startTime": "20:30",
       "endTime": "21:00",
+      "title": "鋼琴陪練",
+      "category": "class"
+    },
+    {
+      "id": "1794914660031-3",
+      "startTime": "20:00",
+      "endTime": "21:30",
       "title": "鋼琴陪練",
       "category": "class"
     }
