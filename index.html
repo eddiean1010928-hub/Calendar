@@ -72,17 +72,18 @@
     .btn-key { background: #fef3c7; color: #92400e; border-color: #fde68a; font-size: 13px; }
     .btn-key.ready { background: #eff6ff; color: #1e40af; border-color: #bfdbfe; }
 
-    /* 三維度平均統計面板 */
+    /* 上方數據中心統計面板：學習、自主、放鬆 */
     .stats-card { background: var(--card); padding: 14px 16px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 15px; display: flex; flex-direction: column; gap: 10px; }
     .stats-title-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
     .stats-title { font-size: 14px; font-weight: 700; color: var(--muted); }
     .btn-report { background: #10b981; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; }
     .btn-report:hover { background: #059669; }
 
-    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
+    .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
     .stat-box { background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 10px; display: flex; flex-direction: column; gap: 2px; }
     .stat-label { font-size: 11px; color: var(--muted); font-weight: 600; }
     .stat-value { font-size: 16px; font-weight: 700; color: var(--primary); }
+    .stat-value.relax { color: #059669; }
 
     /* 月曆網格 */
     .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; background: var(--card); padding: 10px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
@@ -96,9 +97,9 @@
 
     /* 標籤顏色 */
     .event-pill { font-size: 11px; padding: 2px 5px; border-radius: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500; }
-    .cat-class { background: #dbeafe; color: #1e40af; }      /* 藍色：上課 */
+    .cat-class { background: #dbeafe; color: #1e40af; }      /* 藍色：學習(上課) */
     .cat-self { background: #e0e7ff; color: #3730a3; }       /* 靛色：自主 */
-    .cat-life { background: #dcfce7; color: #166534; }       /* 綠色：生活 */
+    .cat-life { background: #dcfce7; color: #166534; }       /* 綠色：日常 */
     .cat-sport { background: #ffedd5; color: #9a3412; }      /* 橘色：運動 */
     .cat-fun { background: #f3e8ff; color: #6b21a8; }        /* 紫色：娛樂 */
 
@@ -106,19 +107,36 @@
     .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(2px); z-index: 100; justify-content: center; align-items: center; padding: 16px; }
     .modal-overlay.active { display: flex; }
     .modal-card { background: var(--card); width: 100%; max-width: 460px; border-radius: 16px; padding: 20px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); max-height: 90vh; display: flex; flex-direction: column; }
-    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
     .modal-title { font-size: 18px; font-weight: 700; }
     .close-btn { border: none; background: #f1f5f9; width: 32px; height: 32px; border-radius: 50%; font-size: 18px; display: flex; align-items: center; justify-content: center; }
+
+    /* 每天點開來的專屬休息（無事）時間橫幅 */
+    .daily-rest-banner {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-left: 4px solid #10b981;
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .daily-rest-label { font-size: 13px; font-weight: 600; color: #166534; }
+    .daily-rest-value { font-size: 15px; font-weight: 700; color: #059669; }
 
     .event-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; min-height: 60px; }
     .event-item { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 10px; background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; border-left: 4px solid var(--primary); }
     .event-info { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
     .event-name { font-size: 15px; font-weight: 500; word-break: break-word; }
-    .item-actions { display: flex; gap: 5px; flex-shrink: 0; }
-    .del-btn { background: #fee2e2; color: #dc2626; border: none; padding: 6px 9px; font-size: 12px; border-radius: 6px; font-weight: 600; }
-    .bulk-del-btn { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; padding: 6px 9px; font-size: 12px; border-radius: 6px; font-weight: 600; }
+    
+    .item-actions { display: flex; gap: 4px; flex-shrink: 0; }
+    .edit-btn { background: #e0e7ff; color: #3730a3; border: none; padding: 5px 7px; font-size: 11px; border-radius: 6px; font-weight: 600; cursor: pointer; }
+    .del-btn { background: #fee2e2; color: #dc2626; border: none; padding: 5px 7px; font-size: 11px; border-radius: 6px; font-weight: 600; cursor: pointer; }
+    .bulk-del-btn { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; padding: 5px 7px; font-size: 11px; border-radius: 6px; font-weight: 600; cursor: pointer; }
 
-    /* 新增表單排版 */
+    /* 新增與編輯表單排版 */
     .add-form { display: flex; flex-direction: column; gap: 10px; padding-top: 12px; border-top: 1px solid var(--border); }
     .time-range-row { display: flex; align-items: center; gap: 6px; }
     .time-range-row span { font-size: 13px; color: var(--muted); font-weight: 600; }
@@ -128,11 +146,17 @@
     .form-row-2 { display: flex; gap: 8px; }
     .form-row-2 select { flex: 1; color: var(--text); font-weight: 500; }
     .syncing { opacity: 0.6; pointer-events: none; }
+    
+    .form-mode-title { font-size: 13px; font-weight: 700; color: var(--primary); display: flex; justify-content: space-between; align-items: center; }
+    .cancel-edit-link { font-size: 12px; color: var(--muted); cursor: pointer; text-decoration: underline; }
 
     @media (max-width: 600px) {
       .day-cell { min-height: 70px; padding: 4px; }
       .event-pill { font-size: 10px; padding: 2px 3px; }
       .modal-card { padding: 16px; }
+      .stats-grid { gap: 6px; }
+      .stat-box { padding: 8px 6px; }
+      .stat-value { font-size: 14px; }
     }
   </style>
 </head>
@@ -177,24 +201,24 @@
       </div>
     </div>
 
-    <!-- 三維度平均統計面板 (含報告記錄按鈕) -->
+    <!-- 上方數據中心統計面板：學習、自主、放鬆 (僅計算有事件的天數) -->
     <div class="stats-card">
       <div class="stats-title-row">
-        <span class="stats-title" id="statsCardTitle">📊 本月每週平均時間統計報告</span>
-        <button class="btn-report" id="reportBtn">📋 產出報告：記錄本週平均</button>
+        <span class="stats-title" id="statsCardTitle">📊 數據中心：本月平均統計</span>
+        <button class="btn-report" id="reportBtn">📋 產出報告：記錄本月平均</button>
       </div>
       <div class="stats-grid">
         <div class="stat-box">
-          <span class="stat-label">🎓 每日平均上課</span>
+          <span class="stat-label">🎓 每日平均學習</span>
           <span class="stat-value" id="avgClassDaily">0.0 小時</span>
         </div>
         <div class="stat-box">
           <span class="stat-label">💻 每日平均自主</span>
           <span class="stat-value" id="avgSelfDaily">0.0 小時</span>
         </div>
-        <div class="stat-box">
-          <span class="stat-label">🌱 每日平均休息</span>
-          <span class="stat-value" id="avgRestDaily">0.0 小時</span>
+        <div class="stat-box" style="background: #f0fdf4; border-color: #bbf7d0;">
+          <span class="stat-label" style="color: #166534;">☕ 每日平均放鬆</span>
+          <span class="stat-value relax" id="avgRelaxDaily">24.0 小時</span>
         </div>
       </div>
     </div>
@@ -209,27 +233,39 @@
         <div class="modal-title" id="modalDateTitle">2026年11月16日</div>
         <button class="close-btn" id="closeModal">&times;</button>
       </div>
+
+      <!-- 每天點開來的專屬「休息（無事）時間」顯示欄 -->
+      <div class="daily-rest-banner">
+        <span class="daily-rest-label">🌱 當天休息（無事）時間：</span>
+        <span class="daily-rest-value" id="modalDailyRestTime">24.0 小時</span>
+      </div>
       
       <div class="event-list" id="modalEventList"></div>
 
+      <!-- 新增 / 編輯表單共用區 -->
       <div class="add-form" id="addForm">
+        <div class="form-mode-title">
+          <span id="formModeLabel">➕ 新增活動</span>
+          <span id="cancelEditBtn" class="cancel-edit-link" style="display:none;">取消編輯</span>
+        </div>
+        
         <div class="time-range-row">
           <span>時間：</span>
           <input type="time" id="eventStartTime" title="開始時間">
           <span>～</span>
           <input type="time" id="eventEndTime" title="結束時間">
         </div>
-        <input type="text" id="eventTitle" placeholder="輸入活動名稱 (例: 數學課、寫程式、休息)...">
+        <input type="text" id="eventTitle" placeholder="輸入活動名稱 (例: 數學課、寫程式)...">
         
         <div class="form-row-2">
           <select id="eventCategory">
-            <option value="class">🎓 學業 - 上課</option>
+            <option value="class">🎓 學業 - 學習 (上課)</option>
             <option value="self">💻 學業 - 自主</option>
-            <option value="life">🌱 生活 - 休息</option>
+            <option value="life">🌱 生活 - 日常</option>
             <option value="sport">⚡ 運動 - 健康</option>
-            <option value="fun">🎮 娛樂 - 其他</option>
+            <option value="fun">🎮 娛樂 - 其它</option>
           </select>
-          <select id="repeatMode">
+          <select id="repeatModeContainer">
             <option value="single">僅限這一天</option>
             <option value="week_all">本週每一天</option>
             <option value="month_all">本月每一天</option>
@@ -252,9 +288,9 @@
     const DATA_FILE = 'events.json';
 
     const CATEGORIES = {
-      class: { name: '上課', class: 'cat-class' },
+      class: { name: '學習', class: 'cat-class' },
       self:  { name: '自主', class: 'cat-self' },
-      life:  { name: '休息', class: 'cat-life' },
+      life:  { name: '日常', class: 'cat-life' },
       sport: { name: '運動', class: 'cat-sport' },
       fun:   { name: '娛樂', class: 'cat-fun' }
     };
@@ -265,6 +301,7 @@
     let eventsData = {};
     let fileSha = '';
     let selectedDateKey = '';
+    let editingEventId = null;
 
     const loginScreen = document.getElementById('loginScreen');
     const appContainer = document.getElementById('appContainer');
@@ -375,11 +412,12 @@
       }
     }
 
-    // 計算每週的每日平均時數（上課、自主、休息）
-    function calculateWeeklyDailyAverages() {
+    // 上方數據中心：僅計算有事天數的「學習、自主、放鬆」每日平均
+    function calculateDataCenterAverages() {
       let totalClassMins = 0;
       let totalSelfMins = 0;
-      let totalRestMins = 0;
+      let totalRelaxMins = 0;
+      let activeDaysCount = 0;
 
       const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
       
@@ -387,48 +425,57 @@
         const dateKey = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
         const dayEvents = eventsData[dateKey] || [];
 
-        dayEvents.forEach(ev => {
-          const mins = getEventDurationMinutes(ev);
-          if (ev && ev.category === 'class') totalClassMins += mins;
-          else if (ev && ev.category === 'self') totalSelfMins += mins;
-          else if (ev && ev.category === 'life') totalRestMins += mins; // life 代表休息
-        });
+        if (dayEvents.length > 0) {
+          activeDaysCount++;
+          let dayBusyMins = 0;
+
+          dayEvents.forEach(ev => {
+            const mins = getEventDurationMinutes(ev);
+            if (ev) {
+              if (ev.category === 'class') totalClassMins += mins;
+              else if (ev.category === 'self') totalSelfMins += mins;
+              dayBusyMins += mins;
+            }
+          });
+
+          let dayRelaxMins = 1440 - dayBusyMins;
+          if (dayRelaxMins < 0) dayRelaxMins = 0;
+          totalRelaxMins += dayRelaxMins;
+        }
       }
 
-      // 總天數轉換成「總週數」，再算出「一週的每日平均」
-      const totalWeeks = daysInMonth / 7;
-      const avgClassWeekly = (totalClassMins / 60) / totalWeeks;
-      const avgSelfWeekly = (totalSelfMins / 60) / totalWeeks;
-      const avgRestWeekly = (totalRestMins / 60) / totalWeeks;
+      let avgClassDaily = 0;
+      let avgSelfDaily = 0;
+      let avgRelaxDaily = 24;
 
-      // 換算成每日平均（除以 7 天）
-      const avgClassDaily = avgClassWeekly / 7;
-      const avgSelfDaily = avgSelfWeekly / 7;
-      const avgRestDaily = avgRestWeekly / 7;
+      if (activeDaysCount > 0) {
+        avgClassDaily = (totalClassMins / 60) / activeDaysCount;
+        avgSelfDaily = (totalSelfMins / 60) / activeDaysCount;
+        avgRelaxDaily = (totalRelaxMins / 60) / activeDaysCount;
+      }
 
       document.getElementById('avgClassDaily').textContent = `${avgClassDaily.toFixed(1)} 小時`;
       document.getElementById('avgSelfDaily').textContent = `${avgSelfDaily.toFixed(1)} 小時`;
-      document.getElementById('avgRestDaily').textContent = `${avgRestDaily.toFixed(1)} 小時`;
-      document.getElementById('statsCardTitle').textContent = `📊 ${currentYear}年${currentMonth + 1}月 每週每日平均時間統計`;
+      document.getElementById('avgRelaxDaily').textContent = `${avgRelaxDaily.toFixed(1)} 小時`;
+      document.getElementById('statsCardTitle').textContent = `📊 數據中心：本月平均統計 (共 ${activeDaysCount} 個有事天)`;
 
       return {
+        activeDays: activeDaysCount,
         classDaily: avgClassDaily.toFixed(1),
         selfDaily: avgSelfDaily.toFixed(1),
-        restDaily: avgRestDaily.toFixed(1),
-        classWeekly: avgClassWeekly.toFixed(1),
-        selfWeekly: avgSelfWeekly.toFixed(1),
-        restWeekly: avgRestWeekly.toFixed(1)
+        relaxDaily: avgRelaxDaily.toFixed(1)
       };
     }
 
-    // 產出報告按鈕事件：記錄每週平均時間當作紀錄
+    // 產出報告按鈕
     document.getElementById('reportBtn').addEventListener('click', () => {
-      const stats = calculateWeeklyDailyAverages();
-      const reportText = `📋 【${currentYear}年 ${currentMonth + 1}月 時間規劃報告】\n\n` +
-        `🎓 上課：\n  - 一週總平均：${stats.classWeekly} 小時\n  - 一週的每日平均：${stats.classDaily} 小時/天\n\n` +
-        `💻 自主練習：\n  - 一週總平均：${stats.selfWeekly} 小時\n  - 一週的每日平均：${stats.selfDaily} 小時/天\n\n` +
-        `🌱 休息時間：\n  - 一週總平均：${stats.restWeekly} 小時\n  - 一週的每日平均：${stats.restDaily} 小時/天\n\n` +
-        `✅ 此數據已成功作為本月紀錄統計完成！`;
+      const stats = calculateDataCenterAverages();
+      const reportText = `📋 【${currentYear}年 ${currentMonth + 1}月 數據中心報告】\n\n` +
+        `📅 統計有事天數：${stats.activeDays} 天\n` +
+        `🎓 每日平均學習：${stats.classDaily} 小時/天\n` +
+        `💻 每日平均自主：${stats.selfDaily} 小時/天\n` +
+        `☕ 每日平均放鬆：${stats.relaxDaily} 小時/天\n\n` +
+        `✅ 此數據已成功記錄！`;
       alert(reportText);
     });
 
@@ -660,7 +707,7 @@
         calendarGrid.appendChild(cell);
       }
 
-      calculateWeeklyDailyAverages();
+      calculateDataCenterAverages();
     }
 
     function openDayModal(dateKey, dayNum) {
@@ -670,13 +717,9 @@
       const wName = weekdayNames[baseDate.getDay()];
 
       document.getElementById('modalDateTitle').textContent = `${currentYear} 年 ${currentMonth + 1} 月 ${dayNum} 日 (週${wName})`;
-      document.getElementById('eventStartTime').value = '';
-      document.getElementById('eventEndTime').value = '';
-      document.getElementById('eventTitle').value = '';
-      document.getElementById('eventCategory').value = 'class';
-      document.getElementById('repeatMode').value = 'single';
+      resetFormToCreateMode();
 
-      const repeatSelect = document.getElementById('repeatMode');
+      const repeatSelect = document.getElementById('repeatModeContainer');
       repeatSelect.options[3].textContent = `本月每個星期${wName}`;
       repeatSelect.options[4].textContent = `今年每個星期${wName} (整年每週)`;
       repeatSelect.options[5].textContent = `今年每月 ${dayNum} 號`;
@@ -685,14 +728,39 @@
       dayModal.classList.add('active');
     }
 
+    function resetFormToCreateMode() {
+      editingEventId = null;
+      document.getElementById('eventStartTime').value = '';
+      document.getElementById('eventEndTime').value = '';
+      document.getElementById('eventTitle').value = '';
+      document.getElementById('eventCategory').value = 'class';
+      document.getElementById('formModeLabel').textContent = '➕ 新增活動';
+      document.getElementById('cancelEditBtn').style.display = 'none';
+      document.getElementById('repeatModeContainer').parentElement.style.display = 'flex';
+      document.getElementById('saveEventBtn').textContent = '確認新增並存檔';
+    }
+
+    document.getElementById('cancelEditBtn').addEventListener('click', () => {
+      resetFormToCreateMode();
+    });
+
     function renderModalList() {
       const listEl = document.getElementById('modalEventList');
       listEl.innerHTML = '';
       const isEditable = currentUser && currentUser !== 'guest';
       const dayEvents = sortEventsByTime(eventsData[selectedDateKey] || []);
 
+      // 計算當天「休息（無事）時間」= 24小時 - 當天所有活動時數
+      let dayBusyMins = 0;
+      dayEvents.forEach(ev => {
+        if (ev) dayBusyMins += getEventDurationMinutes(ev);
+      });
+      let dayRestHours = (1440 - dayBusyMins) / 60;
+      if (dayRestHours < 0) dayRestHours = 0;
+      document.getElementById('modalDailyRestTime').textContent = `${dayRestHours.toFixed(1)} 小時`;
+
       if (dayEvents.length === 0) {
-        listEl.innerHTML = '<div style="text-align:center; color:#94a3b8; padding:20px 0;">這天還沒有安排任何事情</div>';
+        listEl.innerHTML = '<div style="text-align:center; color:#94a3b8; padding:20px 0;">這天還沒有安排任何事情（全天皆為休息時間）</div>';
         return;
       }
 
@@ -717,6 +785,24 @@
           const actionsDiv = document.createElement('div');
           actionsDiv.className = 'item-actions';
 
+          // 編輯按鈕
+          const editBtn = document.createElement('button');
+          editBtn.className = 'edit-btn';
+          editBtn.textContent = '編輯';
+          editBtn.onclick = () => {
+            editingEventId = ev.id;
+            document.getElementById('eventStartTime').value = ev.startTime || '';
+            document.getElementById('eventEndTime').value = ev.endTime || '';
+            document.getElementById('eventTitle').value = ev.title || '';
+            document.getElementById('eventCategory').value = ev.category || 'class';
+            
+            document.getElementById('formModeLabel').textContent = `✏️ 編輯活動：${ev.title}`;
+            document.getElementById('cancelEditBtn').style.display = 'inline';
+            document.getElementById('repeatModeContainer').parentElement.style.display = 'none';
+            document.getElementById('saveEventBtn').textContent = '儲存修改';
+          };
+
+          // 刪除單筆
           const delBtn = document.createElement('button');
           delBtn.className = 'del-btn';
           delBtn.textContent = '刪除';
@@ -724,23 +810,24 @@
             eventsData[selectedDateKey] = eventsData[selectedDateKey].filter(x => x && x.id !== ev.id);
             if (eventsData[selectedDateKey].length === 0) delete eventsData[selectedDateKey];
             const ok = await saveEventsToGitHub(`Delete single event`);
-            if (ok) renderModalList();
+            if (ok) {
+              resetFormToCreateMode();
+              renderModalList();
+            }
           };
 
-          // 一鍵刪除：從這個活動之後的所有此活動
+          // 之後全刪
           const bulkDelBtn = document.createElement('button');
           bulkDelBtn.className = 'bulk-del-btn';
           bulkDelBtn.textContent = '之後全刪';
           bulkDelBtn.onclick = async () => {
-            if (!confirm(`確定要從今天 (${selectedDateKey}) 開始，刪除所有未來相同名稱「${ev.title}」的活動嗎？`)) return;
+            if (!confirm(`確定要從這天 (${selectedDateKey}) 開始，刪除所有未來相同名稱「${ev.title}」的活動嗎？`)) return;
             
             let count = 0;
             const baseDateObj = parseDateKey(selectedDateKey);
 
-            // 掃描所有已儲存的日期
             Object.keys(eventsData).forEach(dateKey => {
               const curDateObj = parseDateKey(dateKey);
-              // 如果日期大於或等於當前選擇的日期
               if (curDateObj >= baseDateObj && Array.isArray(eventsData[dateKey])) {
                 const beforeLen = eventsData[dateKey].length;
                 eventsData[dateKey] = eventsData[dateKey].filter(x => x && !(x.title === ev.title && x.category === ev.category));
@@ -752,7 +839,8 @@
             if (count > 0) {
               const ok = await saveEventsToGitHub(`Bulk delete from ${selectedDateKey} onwards`);
               if (ok) {
-                alert(`已成功刪除從今天之後共 ${count} 筆相同活動！`);
+                alert(`已成功刪除從這天之後共 ${count} 筆相同活動！`);
+                resetFormToCreateMode();
                 renderModalList();
               }
             } else {
@@ -760,6 +848,7 @@
             }
           };
 
+          actionsDiv.appendChild(editBtn);
           actionsDiv.appendChild(delBtn);
           actionsDiv.appendChild(bulkDelBtn);
           item.appendChild(actionsDiv);
@@ -775,7 +864,7 @@
         const endTime = document.getElementById('eventEndTime').value;
         const title = document.getElementById('eventTitle').value.trim();
         const category = document.getElementById('eventCategory').value;
-        const repeatMode = document.getElementById('repeatMode').value;
+        const repeatMode = document.getElementById('repeatModeContainer').value;
 
         if (!title) {
           alert('請輸入活動名稱！');
@@ -787,6 +876,35 @@
           return;
         }
 
+        // 編輯模式
+        if (editingEventId) {
+          let found = false;
+          if (eventsData[selectedDateKey]) {
+            eventsData[selectedDateKey].forEach(ev => {
+              if (ev && ev.id === editingEventId) {
+                ev.startTime = startTime;
+                ev.endTime = endTime;
+                ev.title = title;
+                ev.category = category;
+                found = true;
+              }
+            });
+          }
+
+          if (found) {
+            const ok = await saveEventsToGitHub(`Update event ${title}`);
+            if (ok) {
+              alert('修改已成功儲存！');
+              resetFormToCreateMode();
+              renderModalList();
+            }
+          } else {
+            alert('找不到要修改的活動');
+          }
+          return;
+        }
+
+        // 新增模式
         const targetKeys = getTargetDateKeys(selectedDateKey, repeatMode);
         const baseTimestamp = Date.now();
 
@@ -804,7 +922,7 @@
         const ok = await saveEventsToGitHub(`Add ${targetKeys.length} event(s)`);
         if (ok) {
           document.getElementById('eventTitle').value = '';
-          document.getElementById('repeatMode').value = 'single';
+          resetFormToCreateMode();
           renderModalList();
           if (targetKeys.length > 1) alert(`已成功一鍵新增至 ${targetKeys.length} 個日期！`);
         }
