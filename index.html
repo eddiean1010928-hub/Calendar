@@ -217,7 +217,7 @@
           <span class="stat-value" id="avgSelfDaily">0.0 小時</span>
         </div>
         <div class="stat-box" style="background: #f0fdf4; border-color: #bbf7d0;">
-          <span class="stat-label" style="color: #166534;">☕ 每日平均放鬆 (自選)</span>
+          <span class="stat-label" style="color: #166534;">☕ 每日平均放鬆</span>
           <span class="stat-value relax" id="avgRelaxDaily">0.0 小時</span>
         </div>
       </div>
@@ -360,6 +360,7 @@
       return 60;
     }
 
+    // 核心防呆：確保批量新增時，嚴格限制在「當前年度」之內，絕不會跨年或產生多餘誤差
     function getTargetDateKeys(baseDateKey, mode) {
       try {
         if (!baseDateKey) return [formatDateKey(new Date())];
@@ -376,25 +377,33 @@
           const sunday = new Date(y, m, d - weekday);
           for (let i = 0; i < 7; i++) {
             const cur = new Date(sunday.getFullYear(), sunday.getMonth(), sunday.getDate() + i);
-            keys.push(formatDateKey(cur));
+            // 嚴格過濾：必須是當年度
+            if (cur.getFullYear() === y) {
+              keys.push(formatDateKey(cur));
+            }
           }
         } else if (mode === 'month_all') {
           const daysInMonth = new Date(y, m + 1, 0).getDate();
           for (let day = 1; day <= daysInMonth; day++) {
-            keys.push(formatDateKey(new Date(y, m, day)));
+            const cur = new Date(y, m, day);
+            if (cur.getFullYear() === y) {
+              keys.push(formatDateKey(cur));
+            }
           }
         } else if (mode === 'month_weekday') {
           const daysInMonth = new Date(y, m + 1, 0).getDate();
           for (let day = 1; day <= daysInMonth; day++) {
             const cur = new Date(y, m, day);
-            if (cur.getDay() === weekday) keys.push(formatDateKey(cur));
+            if (cur.getDay() === weekday && cur.getFullYear() === y) {
+              keys.push(formatDateKey(cur));
+            }
           }
         } else if (mode === 'year_weekday') {
           for (let month = 0; month < 12; month++) {
             const daysInTargetMonth = new Date(y, month + 1, 0).getDate();
             for (let day = 1; day <= daysInTargetMonth; day++) {
               const cur = new Date(y, month, day);
-              if (cur.getDay() === weekday) {
+              if (cur.getDay() === weekday && cur.getFullYear() === y) {
                 keys.push(formatDateKey(cur));
               }
             }
@@ -402,7 +411,12 @@
         } else if (mode === 'year_monthday') {
           for (let month = 0; month < 12; month++) {
             const daysInTargetMonth = new Date(y, month + 1, 0).getDate();
-            if (d <= daysInTargetMonth) keys.push(formatDateKey(new Date(y, month, d)));
+            if (d <= daysInTargetMonth) {
+              const cur = new Date(y, month, d);
+              if (cur.getFullYear() === y) {
+                keys.push(formatDateKey(cur));
+              }
+            }
           }
         }
         return keys.length > 0 ? keys : [baseDateKey];
@@ -412,7 +426,7 @@
       }
     }
 
-    // 上方數據中心：計算學習、自主、放鬆（自選）的每日平均（僅算有事件的天數）
+    // 上方數據中心：計算學習, 自主, 放鬆的每日平均（僅算有事件的天數）
     function calculateDataCenterAverages() {
       let totalClassMins = 0;
       let totalSelfMins = 0;
@@ -898,7 +912,7 @@
           return;
         }
 
-        // 新增模式
+        // 新增模式（帶有同年防呆限制）
         const targetKeys = getTargetDateKeys(selectedDateKey, repeatMode);
         const baseTimestamp = Date.now();
 
@@ -918,7 +932,7 @@
           document.getElementById('eventTitle').value = '';
           resetFormToCreateMode();
           renderModalList();
-          if (targetKeys.length > 1) alert(`已成功一鍵新增至 ${targetKeys.length} 個日期！`);
+          if (targetKeys.length > 1) alert(`已成功一鍵新增至同年 ${targetKeys.length} 個日期！`);
         }
       } catch (err) {
         alert('存檔失敗： ' + err.message);
