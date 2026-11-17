@@ -360,7 +360,7 @@
       return 60;
     }
 
-    // 核心防呆：確保批量新增時，嚴格限制在「當前年度」之內，絕不會跨年或產生多餘誤差
+    // 嚴格限制：只往後創，且絕不超過當年
     function getTargetDateKeys(baseDateKey, mode) {
       try {
         if (!baseDateKey) return [formatDateKey(new Date())];
@@ -371,49 +371,50 @@
         const weekday = baseDate.getDay();
         const keys = [];
 
+        const yearEnd = new Date(y, 11, 31);
+
         if (mode === 'single' || !mode) {
           keys.push(baseDateKey);
         } else if (mode === 'week_all') {
-          const sunday = new Date(y, m, d - weekday);
           for (let i = 0; i < 7; i++) {
-            const cur = new Date(sunday.getFullYear(), sunday.getMonth(), sunday.getDate() + i);
-            // 嚴格過濾：必須是當年度
-            if (cur.getFullYear() === y) {
+            const cur = new Date(y, m, d + i);
+            if (cur <= yearEnd) {
               keys.push(formatDateKey(cur));
             }
           }
         } else if (mode === 'month_all') {
           const daysInMonth = new Date(y, m + 1, 0).getDate();
-          for (let day = 1; day <= daysInMonth; day++) {
+          for (let day = d; day <= daysInMonth; day++) {
             const cur = new Date(y, m, day);
-            if (cur.getFullYear() === y) {
+            if (cur <= yearEnd) {
               keys.push(formatDateKey(cur));
             }
           }
         } else if (mode === 'month_weekday') {
           const daysInMonth = new Date(y, m + 1, 0).getDate();
-          for (let day = 1; day <= daysInMonth; day++) {
+          for (let day = d; day <= daysInMonth; day++) {
             const cur = new Date(y, m, day);
-            if (cur.getDay() === weekday && cur.getFullYear() === y) {
+            if (cur.getDay() === weekday && cur <= yearEnd) {
               keys.push(formatDateKey(cur));
             }
           }
         } else if (mode === 'year_weekday') {
-          for (let month = 0; month < 12; month++) {
+          for (let month = m; month < 12; month++) {
+            const startDay = (month === m) ? d : 1;
             const daysInTargetMonth = new Date(y, month + 1, 0).getDate();
-            for (let day = 1; day <= daysInTargetMonth; day++) {
+            for (let day = startDay; day <= daysInTargetMonth; day++) {
               const cur = new Date(y, month, day);
-              if (cur.getDay() === weekday && cur.getFullYear() === y) {
+              if (cur.getDay() === weekday && cur <= yearEnd) {
                 keys.push(formatDateKey(cur));
               }
             }
           }
         } else if (mode === 'year_monthday') {
-          for (let month = 0; month < 12; month++) {
+          for (let month = m; month < 12; month++) {
             const daysInTargetMonth = new Date(y, month + 1, 0).getDate();
             if (d <= daysInTargetMonth) {
               const cur = new Date(y, month, d);
-              if (cur.getFullYear() === y) {
+              if (cur <= yearEnd) {
                 keys.push(formatDateKey(cur));
               }
             }
@@ -426,7 +427,7 @@
       }
     }
 
-    // 上方數據中心：計算學習, 自主, 放鬆的每日平均（僅算有事件的天數）
+    // 上方數據中心：計算學習、自主、放鬆的每日平均（僅算有事件的天數）
     function calculateDataCenterAverages() {
       let totalClassMins = 0;
       let totalSelfMins = 0;
@@ -758,7 +759,6 @@
       const isEditable = currentUser && currentUser !== 'guest';
       const dayEvents = sortEventsByTime(eventsData[selectedDateKey] || []);
 
-      // 計算當天「休息（無事）時間」= 24小時 - 當天所有活動時數
       let dayBusyMins = 0;
       dayEvents.forEach(ev => {
         if (ev) dayBusyMins += getEventDurationMinutes(ev);
@@ -793,7 +793,6 @@
           const actionsDiv = document.createElement('div');
           actionsDiv.className = 'item-actions';
 
-          // 編輯按鈕
           const editBtn = document.createElement('button');
           editBtn.className = 'edit-btn';
           editBtn.textContent = '編輯';
@@ -810,7 +809,6 @@
             document.getElementById('saveEventBtn').textContent = '儲存修改';
           };
 
-          // 刪除單筆
           const delBtn = document.createElement('button');
           delBtn.className = 'del-btn';
           delBtn.textContent = '刪除';
@@ -824,7 +822,6 @@
             }
           };
 
-          // 之後全刪
           const bulkDelBtn = document.createElement('button');
           bulkDelBtn.className = 'bulk-del-btn';
           bulkDelBtn.textContent = '之後全刪';
@@ -884,7 +881,6 @@
           return;
         }
 
-        // 編輯模式
         if (editingEventId) {
           let found = false;
           if (eventsData[selectedDateKey]) {
@@ -912,7 +908,6 @@
           return;
         }
 
-        // 新增模式（帶有同年防呆限制）
         const targetKeys = getTargetDateKeys(selectedDateKey, repeatMode);
         const baseTimestamp = Date.now();
 
